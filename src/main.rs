@@ -11,22 +11,25 @@ fn main() -> Res<()> {
     let day_1_in: Vec<_> = read_lines("day_1.in")?
         .map(|l| l.unwrap().trim().parse::<i32>().unwrap())
         .collect();
-    println!("  part 1 {}", day_1(day_1_in.iter()));
-    println!("  part 2 {}", day_1_part_2(day_1_in.iter()));
+    println!("  part 1 {}", day_1(&day_1_in));
+    println!("  part 2 {}", day_1_part_2(&day_1_in));
 
     day_2_part_1()?;
     day_2_part_2()?;
     day_3_part_1()?;
 
+    day_4_part_1();
+
     Ok(())
 }
 
-fn day_1<'a>(mass: impl Iterator<Item = &'a i32>) -> i32 {
-    mass.map(|m| m / 3 - 2).sum()
+fn day_1(mass: &Vec<i32>) -> i32 {
+    mass.iter().map(|m| m / 3 - 2).sum()
 }
 
-fn day_1_part_2<'a>(mass: impl Iterator<Item = &'a i32>) -> i32 {
-    mass.map(|m| m / 3 - 2)
+fn day_1_part_2(mass: &Vec<i32>) -> i32 {
+    mass.iter()
+        .map(|m| m / 3 - 2)
         .map(|m| m + day_1_part_2_fuel(m))
         .sum()
 }
@@ -40,7 +43,10 @@ fn day_1_part_2_fuel(mass: i32) -> i32 {
     }
 }
 
-fn read_better<P, R, F>(filename: P, fff: &'static F) -> io::Result<impl Iterator<Item = Vec<R>>>
+fn read_better<P, R, F>(
+    filename: P,
+    item_parser: &'static F,
+) -> io::Result<impl Iterator<Item = Vec<R>>>
 where
     P: AsRef<Path>,
     F: Fn(&str) -> R,
@@ -48,7 +54,7 @@ where
     let file = File::open(filename)?;
     Ok(io::BufReader::new(file)
         .lines()
-        .map(move |l| l.unwrap().split(",").map(fff).collect::<Vec<R>>()))
+        .map(move |l| l.unwrap().split(",").map(item_parser).collect::<Vec<R>>()))
 }
 
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
@@ -108,19 +114,23 @@ fn run_to_completion(mem: &mut Vec<usize>, start_op_index: usize) {
     }
 }
 
+fn read_operands(input: &mut Vec<usize>, op_index: usize) -> (usize, usize, usize) {
+    (
+        input[op_index + 1],
+        input[op_index + 2],
+        input[op_index + 3],
+    )
+}
+
 fn compute_step(input: &mut Vec<usize>, op_index: usize) -> Option<usize> {
     let next = match input[op_index] {
         1 => {
-            let op_1 = input[op_index + 1];
-            let op_2 = input[op_index + 2];
-            let dest = input[op_index + 3];
+            let (op_1, op_2, dest) = read_operands(input, op_index);
             input[dest] = input[op_1] + input[op_2];
             Some(op_index + 4)
         }
         2 => {
-            let op_1 = input[op_index + 1];
-            let op_2 = input[op_index + 2];
-            let dest = input[op_index + 3];
+            let (op_1, op_2, dest) = read_operands(input, op_index);
             input[dest] = input[op_1] * input[op_2];
             Some(op_index + 4)
         }
@@ -131,6 +141,7 @@ fn compute_step(input: &mut Vec<usize>, op_index: usize) -> Option<usize> {
 }
 
 fn day_3_part_1() -> Res<()> {
+    println!("Day 3");
     let input = read_better("day_3.in", &LineSeg::parse)?;
     let wires = input.map(|ss| Wire::from_segments(&ss)).collect::<Vec<_>>();
 
@@ -141,7 +152,7 @@ fn day_3_part_1() -> Res<()> {
         .filter(|x| *x > 0)
         .min()
         .unwrap();
-    println!("Day 3 - part 1 {}", min);
+    println!("  part 1 {}", min);
 
     let min_dist = intersections
         .iter()
@@ -149,8 +160,17 @@ fn day_3_part_1() -> Res<()> {
         .filter(|x| *x > 0)
         .min()
         .unwrap();
-    println!("        part 2 {}", min_dist);
+    println!("  part 2 {}", min_dist);
     Ok(())
+}
+
+#[derive(Copy, Clone, Debug)]
+struct Point(i32, i32);
+
+#[derive(Copy, Clone, PartialEq, Debug)]
+enum Direction {
+    H,
+    V,
 }
 
 #[derive(Debug)]
@@ -158,6 +178,11 @@ struct LineSeg {
     start: Point,
     length: i32,
     direction: Direction,
+}
+
+#[derive(Debug)]
+struct Wire {
+    segments: Vec<LineSeg>,
 }
 
 impl LineSeg {
@@ -176,6 +201,7 @@ impl LineSeg {
             direction,
         }
     }
+
     fn end_point(&self) -> Point {
         let Point(x, y) = self.start;
         match self.direction {
@@ -205,20 +231,30 @@ impl LineSeg {
             Direction::V => (point.1 - self.start.1).abs(),
         }
     }
+
+    fn find_intersection(seg1: &LineSeg, seg2: &LineSeg) -> Option<Point> {
+        match (seg1.direction, seg2.direction) {
+            (Direction::H, Direction::V) => {
+                let point = Point(seg2.start.0, seg1.start.1);
+                if seg1.is_point_on_line(&point) && seg2.is_point_on_line(&point) {
+                    Some(point)
+                } else {
+                    None
+                }
+            }
+            (Direction::V, Direction::H) => {
+                let point = Point(seg1.start.0, seg2.start.1);
+                if seg1.is_point_on_line(&point) && seg2.is_point_on_line(&point) {
+                    Some(point)
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        }
+    }
 }
 
-#[derive(Copy, Clone, Debug)]
-struct Point(i32, i32);
-#[derive(Copy, Clone, PartialEq, Debug)]
-enum Direction {
-    H,
-    V,
-}
-
-#[derive(Debug)]
-struct Wire {
-    segments: Vec<LineSeg>,
-}
 impl Wire {
     fn from_segments(segs: &Vec<LineSeg>) -> Self {
         let mut pos = Point(0, 0);
@@ -238,7 +274,7 @@ impl Wire {
         let mut res = Vec::new();
         for seg1 in &w1.segments {
             for seg2 in &w2.segments {
-                if let Some(point) = find_intersection(seg1, seg2) {
+                if let Some(point) = LineSeg::find_intersection(seg1, seg2) {
                     res.push(point)
                 }
             }
@@ -260,24 +296,67 @@ impl Wire {
     }
 }
 
-fn find_intersection(seg1: &LineSeg, seg2: &LineSeg) -> Option<Point> {
-    match (seg1.direction, seg2.direction) {
-        (Direction::H, Direction::V) => {
-            let point = Point(seg2.start.0, seg1.start.1);
-            if seg1.is_point_on_line(&point) && seg2.is_point_on_line(&point) {
-                Some(point)
-            } else {
-                None
+fn day_4_part_1() {
+    println!("Day 4");
+    let from = 171309;
+    let until = 643063;
+    {
+        let mut res_count = 0;
+
+        for test in from..=until {
+            if has_adjacent_digits(test) && all_digits_incrementing(test) {
+                res_count += 1;
             }
         }
-        (Direction::V, Direction::H) => {
-            let point = Point(seg1.start.0, seg2.start.1);
-            if seg1.is_point_on_line(&point) && seg2.is_point_on_line(&point) {
-                Some(point)
-            } else {
-                None
-            }
-        }
-        _ => None,
+
+        println!("  part 1 {}", res_count);
     }
+    {
+        let mut res_count = 0;
+
+        for test in from..=until {
+            if has_only_adjacent_digits(test) && all_digits_incrementing(test) {
+                res_count += 1;
+            }
+        }
+
+        println!("  part 2 {}", res_count);
+    }
+}
+
+fn has_adjacent_digits(test: usize) -> bool {
+    let d1 = test / 100000;
+    let d2 = test / 10000 % 10;
+    let d3 = test / 1000 % 10;
+    let d4 = test / 100 % 10;
+    let d5 = test / 10 % 10;
+    let d6 = test % 10;
+
+    (d1 == d2) || (d2 == d3) || (d3 == d4) || (d4 == d5) || (d5 == d6)
+}
+
+fn has_only_adjacent_digits(test: usize) -> bool {
+    let d1 = test / 100000;
+    let d2 = test / 10000 % 10;
+    let d3 = test / 1000 % 10;
+    let d4 = test / 100 % 10;
+    let d5 = test / 10 % 10;
+    let d6 = test % 10;
+
+    (d1 == d2 && d2 != d3)
+        || (d1 != d2 && d2 == d3 && d3 != d4)
+        || (d2 != d3 && d3 == d4 && d4 != d5)
+        || (d3 != d4 && d4 == d5 && d5 != d6)
+        || (d4 != d5 && d5 == d6)
+}
+
+fn all_digits_incrementing(test: usize) -> bool {
+    let d1 = test / 100000;
+    let d2 = test / 10000 % 10;
+    let d3 = test / 1000 % 10;
+    let d4 = test / 100 % 10;
+    let d5 = test / 10 % 10;
+    let d6 = test % 10;
+
+    d1 <= d2 && d2 <= d3 && d3 <= d4 && d4 <= d5 && d5 <= d6
 }
