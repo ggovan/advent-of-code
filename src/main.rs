@@ -25,11 +25,11 @@ fn main() -> Res<()> {
     Ok(())
 }
 
-fn day_1(mass: &Vec<i32>) -> i32 {
+fn day_1(mass: &[i32]) -> i32 {
     mass.iter().map(|m| m / 3 - 2).sum()
 }
 
-fn day_1_part_2(mass: &Vec<i32>) -> i32 {
+fn day_1_part_2(mass: &[i32]) -> i32 {
     mass.iter()
         .map(|m| m / 3 - 2)
         .map(|m| m + day_1_part_2_fuel(m))
@@ -56,7 +56,7 @@ where
     let file = File::open(filename)?;
     Ok(io::BufReader::new(file)
         .lines()
-        .map(move |l| l.unwrap().split(",").map(item_parser).collect::<Vec<R>>()))
+        .map(move |l| l.unwrap().split(',').map(item_parser).collect::<Vec<R>>()))
 }
 
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
@@ -109,7 +109,7 @@ fn day_5() -> Res<()> {
     println!("  part 1 {:?}", machine.output);
 
     let mut machine_2 = Machine {
-        mem: mem.clone(),
+        mem,
         op_index: 0,
         input: vec![5],
         input_index: 0,
@@ -200,7 +200,7 @@ impl Machine {
 
     fn compute_step(&mut self) -> Option<usize> {
         let (instruction, mode_1, mode_2, _mode_3) = self.read_op_and_modes();
-        let next = match instruction {
+        match instruction {
             1 => {
                 let (val_1, val_2, dest, next) =
                     self.read_operands_3(mode_1, mode_2, Mode::Immediate);
@@ -269,8 +269,7 @@ impl Machine {
             }
             99 => Option::None,
             x => panic!("Invalid instruction {}", x),
-        };
-        next
+        }
     }
 }
 
@@ -278,7 +277,7 @@ fn day_2_part_2() -> Res<()> {
     let input: Vec<i32> = read_lines("day_2.in")?
         .nth(0)
         .unwrap()?
-        .split(",")
+        .split(',')
         .map(|s| s.parse().unwrap())
         .collect();
 
@@ -299,7 +298,7 @@ fn day_2_part_2() -> Res<()> {
             };
 
             machine.run_to_completion(0);
-            if machine.mem[0] == 19690720 {
+            if machine.mem[0] == 19_690_720 {
                 pairs.push((noun, verb))
             }
         }
@@ -325,7 +324,7 @@ fn day_3() -> Res<()> {
 
     let min_dist = intersections
         .iter()
-        .map(|p| wires[0].distance_to(p) + wires[1].distance_to(p))
+        .map(|&p| wires[0].distance_to(p) + wires[1].distance_to(p))
         .filter(|x| *x > 0)
         .min()
         .unwrap();
@@ -379,7 +378,7 @@ impl LineSeg {
         }
     }
 
-    fn is_point_on_line(&self, point: &Point) -> bool {
+    fn is_point_on_line(&self, point: Point) -> bool {
         match self.direction {
             Direction::H => {
                 let mut xs = [self.start.0, self.end_point().0];
@@ -394,7 +393,7 @@ impl LineSeg {
         }
     }
 
-    fn distance_to_point_on_line(&self, point: &Point) -> i32 {
+    fn distance_to_point_on_line(&self, point: Point) -> i32 {
         match self.direction {
             Direction::H => (point.0 - self.start.0).abs(),
             Direction::V => (point.1 - self.start.1).abs(),
@@ -405,7 +404,7 @@ impl LineSeg {
         match (seg1.direction, seg2.direction) {
             (Direction::H, Direction::V) => {
                 let point = Point(seg2.start.0, seg1.start.1);
-                if seg1.is_point_on_line(&point) && seg2.is_point_on_line(&point) {
+                if seg1.is_point_on_line(point) && seg2.is_point_on_line(point) {
                     Some(point)
                 } else {
                     None
@@ -413,7 +412,7 @@ impl LineSeg {
             }
             (Direction::V, Direction::H) => {
                 let point = Point(seg1.start.0, seg2.start.1);
-                if seg1.is_point_on_line(&point) && seg2.is_point_on_line(&point) {
+                if seg1.is_point_on_line(point) && seg2.is_point_on_line(point) {
                     Some(point)
                 } else {
                     None
@@ -425,7 +424,7 @@ impl LineSeg {
 }
 
 impl Wire {
-    fn from_segments(segs: &Vec<LineSeg>) -> Self {
+    fn from_segments(segs: &[LineSeg]) -> Self {
         let mut pos = Point(0, 0);
         let mut positioned_segs: Vec<LineSeg> = Vec::new();
 
@@ -451,7 +450,7 @@ impl Wire {
         res
     }
 
-    fn distance_to(&self, point: &Point) -> i32 {
+    fn distance_to(&self, point: Point) -> i32 {
         let mut dist = 0;
         for seg in &self.segments {
             if seg.is_point_on_line(point) {
@@ -467,8 +466,8 @@ impl Wire {
 
 fn day_4() {
     println!("Day 4");
-    let from = 171309;
-    let until = 643063;
+    let from = 171_309;
+    let until = 643_063;
     {
         let mut res_count = 0;
 
@@ -494,7 +493,7 @@ fn day_4() {
 }
 
 fn has_adjacent_digits(test: usize) -> bool {
-    let d1 = test / 100000;
+    let d1 = test / 100_000;
     let d2 = test / 10000 % 10;
     let d3 = test / 1000 % 10;
     let d4 = test / 100 % 10;
@@ -505,7 +504,7 @@ fn has_adjacent_digits(test: usize) -> bool {
 }
 
 fn has_only_adjacent_digits(test: usize) -> bool {
-    let d1 = test / 100000;
+    let d1 = test / 100_000;
     let d2 = test / 10000 % 10;
     let d3 = test / 1000 % 10;
     let d4 = test / 100 % 10;
@@ -520,7 +519,7 @@ fn has_only_adjacent_digits(test: usize) -> bool {
 }
 
 fn all_digits_incrementing(test: usize) -> bool {
-    let d1 = test / 100000;
+    let d1 = test / 100_000;
     let d2 = test / 10000 % 10;
     let d3 = test / 1000 % 10;
     let d4 = test / 100 % 10;
