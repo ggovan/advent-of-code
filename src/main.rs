@@ -531,10 +531,7 @@ fn all_digits_incrementing(test: usize) -> bool {
     d1 <= d2 && d2 <= d3 && d3 <= d4 && d4 <= d5 && d5 <= d6
 }
 
-struct Node {
-    name: String,
-    children: Vec<Node>,
-}
+type Graph<'a> = HashMap<&'a String, Vec<&'a String>>;
 
 fn day_6() -> Res<()> {
     let input = read_lines("day_6.in")?
@@ -548,7 +545,7 @@ fn day_6() -> Res<()> {
         })
         .collect::<Vec<_>>();
 
-    let mut node_map: HashMap<&String, Vec<&String>> = HashMap::new();
+    let mut node_map: Graph = HashMap::new();
 
     for (a, b) in &input {
         let new_val = node_map.remove(a).map_or(vec![b], move |mut v| {
@@ -558,41 +555,35 @@ fn day_6() -> Res<()> {
         node_map.insert(a, new_val);
     }
 
-    let root = build_tree(&node_map, &"COM".to_owned());
-
     println!("Day 6");
-    println!("  part 1 {}", count_orbits(&root, 0));
-    println!("  part 2 {:?}", min_dist_orbits(&root));
+    println!("  part 1 {}", count_orbits(&node_map, &"COM".to_owned(), 0));
+    println!("  part 2 {:?}", shift_orbits(&node_map, &"COM".to_owned()));
     Ok(())
 }
 
-fn build_tree(node_map: &HashMap<&String, Vec<&String>>, node_name: &String) -> Node {
-    Node {
-        name: node_name.clone(),
-        children: node_map.get(node_name).map_or(vec![], move |v| {
-            v.iter().map(|c| build_tree(node_map, c)).collect()
-        }),
-    }
-}
-
-fn count_orbits(node: &Node, depth: usize) -> usize {
-    node.children
+fn count_orbits(graph: &Graph, node: &String, depth: usize) -> usize {
+    let empty_vec = vec![];
+    graph
+        .get(node)
+        .unwrap_or(&empty_vec)
         .iter()
-        .map(move |n| count_orbits(n, depth + 1))
+        .map(move |n| count_orbits(graph, n, depth + 1))
         .sum::<usize>()
         + depth
 }
 
-fn min_dist_orbits(node: &Node) -> OrbitDiff {
+fn shift_orbits(graph: &Graph, node: &String) -> OrbitDiff {
     use OrbitDiff::*;
-    match node.name.as_ref() {
+    let empty_vec = vec![];
+    match node.as_ref() {
         "SAN" => San(0),
         "YOU" => You(0),
         _ => {
-            let (both, san, you): (OrbitDiff, OrbitDiff, OrbitDiff) = node
-                .children
+            let (both, san, you): (OrbitDiff, OrbitDiff, OrbitDiff) = graph
+                .get(node)
+                .unwrap_or(&empty_vec)
                 .iter()
-                .map(min_dist_orbits)
+                .map(move |n| shift_orbits(graph, n))
                 .filter(|&d| d != Neither)
                 .fold((Neither, Neither, Neither), |(b, s, y), c| match c {
                     Both(_) => (c, Neither, Neither),
