@@ -562,6 +562,7 @@ fn day_6() -> Res<()> {
 
     println!("Day 6");
     println!("  part 1 {}", count_orbits(&root, 0));
+    println!("  part 2 {:?}", min_dist_orbits(&root));
     Ok(())
 }
 
@@ -580,4 +581,63 @@ fn count_orbits(node: &Node, depth: usize) -> usize {
         .map(move |n| count_orbits(n, depth + 1))
         .sum::<usize>()
         + depth
+}
+
+fn min_dist_orbits(node: &Node) -> OrbitDiff {
+    use OrbitDiff::*;
+    match node.name.as_ref() {
+        "SAN" => San(0),
+        "YOU" => You(0),
+        _ => {
+            let children = node
+                .children
+                .iter()
+                .map(min_dist_orbits)
+                .filter(|&d| d != OrbitDiff::Neither)
+                .collect::<Vec<_>>();
+
+            let (both, san, you) = (
+                children.iter().find(|x| x.is_both()),
+                children.iter().find(|x| x.is_san()),
+                children.iter().find(|x| x.is_you()),
+            );
+
+            match (both, san, you) {
+                (Some(Both(x)), _, _) => Both(*x),
+                (_, Some(San(x)), Some(You(y))) => Both(x + y),
+                (_, Some(San(x)), _) => San(x + 1),
+                (_, _, Some(You(x))) => You(x + 1),
+                _ => OrbitDiff::Neither,
+            }
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Copy, Clone)]
+enum OrbitDiff {
+    San(usize),
+    You(usize),
+    Both(usize),
+    Neither,
+}
+
+impl OrbitDiff {
+    fn is_san(&self) -> bool {
+        match self {
+            OrbitDiff::San(_) => true,
+            _ => false,
+        }
+    }
+    fn is_you(&self) -> bool {
+        match self {
+            OrbitDiff::You(_) => true,
+            _ => false,
+        }
+    }
+    fn is_both(&self) -> bool {
+        match self {
+            OrbitDiff::Both(_) => true,
+            _ => false,
+        }
+    }
 }
