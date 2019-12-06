@@ -589,24 +589,23 @@ fn min_dist_orbits(node: &Node) -> OrbitDiff {
         "SAN" => San(0),
         "YOU" => You(0),
         _ => {
-            let children = node
+            let (both, san, you): (OrbitDiff, OrbitDiff, OrbitDiff) = node
                 .children
                 .iter()
                 .map(min_dist_orbits)
-                .filter(|&d| d != OrbitDiff::Neither)
-                .collect::<Vec<_>>();
-
-            let (both, san, you) = (
-                children.iter().find(|x| x.is_both()),
-                children.iter().find(|x| x.is_san()),
-                children.iter().find(|x| x.is_you()),
-            );
+                .filter(|&d| d != Neither)
+                .fold((Neither, Neither, Neither), |(b, s, y), c| match c {
+                    Both(_) => (c, Neither, Neither),
+                    San(_) => (Neither, c, y),
+                    You(_) => (Neither, s, c),
+                    _ => (b, s, y),
+                });
 
             match (both, san, you) {
-                (Some(Both(x)), _, _) => Both(*x),
-                (_, Some(San(x)), Some(You(y))) => Both(x + y),
-                (_, Some(San(x)), _) => San(x + 1),
-                (_, _, Some(You(x))) => You(x + 1),
+                (Both(x), _, _) => Both(x),
+                (_, San(x), You(y)) => Both(x + y),
+                (_, San(x), _) => San(x + 1),
+                (_, _, You(x)) => You(x + 1),
                 _ => OrbitDiff::Neither,
             }
         }
@@ -619,25 +618,4 @@ enum OrbitDiff {
     You(usize),
     Both(usize),
     Neither,
-}
-
-impl OrbitDiff {
-    fn is_san(&self) -> bool {
-        match self {
-            OrbitDiff::San(_) => true,
-            _ => false,
-        }
-    }
-    fn is_you(&self) -> bool {
-        match self {
-            OrbitDiff::You(_) => true,
-            _ => false,
-        }
-    }
-    fn is_both(&self) -> bool {
-        match self {
-            OrbitDiff::Both(_) => true,
-            _ => false,
-        }
-    }
 }
