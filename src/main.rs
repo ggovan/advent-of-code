@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::io::{self, BufRead};
@@ -21,6 +22,7 @@ fn main() -> Res<()> {
     day_4();
 
     day_5()?;
+    day_6()?;
 
     Ok(())
 }
@@ -527,4 +529,55 @@ fn all_digits_incrementing(test: usize) -> bool {
     let d6 = test % 10;
 
     d1 <= d2 && d2 <= d3 && d3 <= d4 && d4 <= d5 && d5 <= d6
+}
+
+struct Node {
+    name: String,
+    children: Vec<Node>,
+}
+
+fn day_6() -> Res<()> {
+    let input = read_lines("day_6.in")?
+        .map(|x| {
+            let unwrapped = x.unwrap();
+            let parts = unwrapped
+                .split(')')
+                .map(|x| x.to_string())
+                .collect::<Vec<_>>();
+            (parts[0].clone(), parts[1].clone())
+        })
+        .collect::<Vec<_>>();
+
+    let mut node_map: HashMap<&String, Vec<&String>> = HashMap::new();
+
+    for (a, b) in &input {
+        let new_val = node_map.remove(a).map_or(vec![b], move |mut v| {
+            v.push(b);
+            v
+        });
+        node_map.insert(a, new_val);
+    }
+
+    let root = build_tree(&node_map, &"COM".to_owned());
+
+    println!("Day 6");
+    println!("  part 1 {}", count_orbits(&root, 0));
+    Ok(())
+}
+
+fn build_tree(node_map: &HashMap<&String, Vec<&String>>, node_name: &String) -> Node {
+    Node {
+        name: node_name.clone(),
+        children: node_map.get(node_name).map_or(vec![], move |v| {
+            v.iter().map(|c| build_tree(node_map, c)).collect()
+        }),
+    }
+}
+
+fn count_orbits(node: &Node, depth: usize) -> usize {
+    node.children
+        .iter()
+        .map(move |n| count_orbits(n, depth + 1))
+        .sum::<usize>()
+        + depth
 }
