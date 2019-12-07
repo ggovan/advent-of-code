@@ -24,6 +24,8 @@ fn main() -> Res<()> {
     day_5()?;
     day_6()?;
 
+    day_7()?;
+
     Ok(())
 }
 
@@ -87,7 +89,7 @@ fn day_2_part_1() -> Res<()> {
         output: vec![],
     };
 
-    machine.run_to_completion(0);
+    machine.run_to_completion();
 
     println!("  part 1 {}", machine.mem[0]);
     Ok(())
@@ -100,26 +102,106 @@ fn day_5() -> Res<()> {
         .nth(0)
         .unwrap();
 
-    let mut machine = Machine {
-        mem: mem.clone(),
-        op_index: 0,
-        input: vec![1],
-        input_index: 0,
-        output: vec![],
-    };
-    machine.run_to_completion(0);
+    let mut machine = Machine::new(&mem, vec![1]);
+    machine.run_to_completion();
     println!("  part 1 {:?}", machine.output);
 
-    let mut machine_2 = Machine {
-        mem,
-        op_index: 0,
-        input: vec![5],
-        input_index: 0,
-        output: vec![],
-    };
-    machine_2.run_to_completion(0);
+    let mut machine_2 = Machine::new(&mem, vec![5]);
+    machine_2.run_to_completion();
     println!("  part 2 {:?}", machine_2.output);
     Ok(())
+}
+
+fn day_7() -> Res<()> {
+    println!("Day 7");
+
+    let mem: Vec<i32> = read_better("day_7.in", &|s| s.parse::<i32>().unwrap())?
+        .nth(0)
+        .unwrap();
+    let memref = &mem;
+
+    let thruster = Permutations::permute(01234, 43210)
+        .map(move |config| {
+            config.iter().fold(0, |acc, &v| {
+                let mut machine_a = Machine::new(memref, vec![v]);
+                machine_a.run_to_output(acc);
+                machine_a.output[0]
+            })
+        })
+        .max();
+    println!("  part 1 {:?}", thruster);
+
+    let thruster_2 = Permutations::permute(56789, 98765)
+        .map(move |config| {
+            let mut machines: Vec<Machine> = config
+                .iter()
+                .map(|&v| Machine::new(memref, vec![v]))
+                .collect();
+
+            let mut next_machine = 0;
+            let mut last_output = 0;
+
+            loop {
+                let m: &mut Machine = &mut (machines[next_machine]);
+                next_machine = (next_machine + 1) % 5;
+                let output = m.run_to_output(last_output);
+                if let Some(v) = output {
+                    last_output = v;
+                } else {
+                    let e = &machines[4];
+                    break e.output[e.output.len() - 1];
+                }
+            }
+        })
+        .max();
+    println!("  part 2 {:?}", thruster_2);
+
+    Ok(())
+}
+
+struct Permutations {
+    base: [i32; 5],
+    end: i32,
+    current: i32,
+}
+
+impl Permutations {
+    fn val_to_arr(value: i32) -> [i32; 5] {
+        [
+            value / 10000,
+            value / 1000 % 10,
+            value / 100 % 10,
+            value / 10 % 10,
+            value % 10,
+        ]
+    }
+
+    fn permute(start: i32, end: i32) -> Self {
+        Permutations {
+            base: Permutations::val_to_arr(start),
+            end,
+            current: start,
+        }
+    }
+}
+
+impl Iterator for Permutations {
+    type Item = [i32; 5];
+
+    fn next(&mut self) -> Option<<Self as Iterator>::Item> {
+        loop {
+            let next_arr = Permutations::val_to_arr(self.current);
+            self.current += 1;
+            let mut sorted = next_arr.clone();
+            sorted.sort();
+            if sorted == self.base {
+                break Some(next_arr);
+            }
+            if self.current > self.end {
+                break None;
+            }
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -146,6 +228,16 @@ impl Mode {
 }
 
 impl Machine {
+    fn new(mem: &Vec<i32>, input: Vec<i32>) -> Self {
+        Machine {
+            mem: mem.clone(),
+            op_index: 0,
+            input,
+            input_index: 0,
+            output: vec![],
+        }
+    }
+
     fn ck_addr(&self, val: i32) -> usize {
         if 0 <= val && val < self.mem.len() as i32 {
             val as usize
@@ -154,10 +246,22 @@ impl Machine {
         }
     }
 
-    fn run_to_completion(&mut self, start_op_index: usize) {
-        let mut next = Some(start_op_index);
-        while let Some(_i) = next {
-            next = self.compute_step();
+    fn run_to_completion(&mut self) {
+        while self.compute_step().is_some(){} ;
+        
+    }
+
+    fn run_to_output(&mut self, input: i32) -> Option<i32> {
+        let out_length = self.output.len();
+        self.input.push(input);
+        loop {
+            let next = self.compute_step();
+            if next.is_none() {
+                break None;
+            }
+            if self.output.len() != out_length {
+                break Some(self.output[out_length]);
+            }
         }
     }
 
@@ -299,7 +403,7 @@ fn day_2_part_2() -> Res<()> {
                 output: vec![],
             };
 
-            machine.run_to_completion(0);
+            machine.run_to_completion();
             if machine.mem[0] == 19_690_720 {
                 pairs.push((noun, verb))
             }
@@ -496,8 +600,8 @@ fn day_4() {
 
 fn has_adjacent_digits(test: usize) -> bool {
     let d1 = test / 100_000;
-    let d2 = test / 10000 % 10;
-    let d3 = test / 1000 % 10;
+    let d2 = test / 10_000 % 10;
+    let d3 = test / 1_000 % 10;
     let d4 = test / 100 % 10;
     let d5 = test / 10 % 10;
     let d6 = test % 10;
@@ -507,8 +611,8 @@ fn has_adjacent_digits(test: usize) -> bool {
 
 fn has_only_adjacent_digits(test: usize) -> bool {
     let d1 = test / 100_000;
-    let d2 = test / 10000 % 10;
-    let d3 = test / 1000 % 10;
+    let d2 = test / 10_000 % 10;
+    let d3 = test / 1_000 % 10;
     let d4 = test / 100 % 10;
     let d5 = test / 10 % 10;
     let d6 = test % 10;
