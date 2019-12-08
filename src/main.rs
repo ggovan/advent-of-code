@@ -18,13 +18,11 @@ fn main() -> Res<()> {
     day_2_part_1()?;
     day_2_part_2()?;
     day_3()?;
-
     day_4();
-
     day_5()?;
     day_6()?;
-
     day_7()?;
+    day_8()?;
 
     Ok(())
 }
@@ -247,8 +245,7 @@ impl Machine {
     }
 
     fn run_to_completion(&mut self) {
-        while self.compute_step().is_some(){} ;
-        
+        while self.compute_step().is_some() {}
     }
 
     fn run_to_output(&mut self, input: i32) -> Option<i32> {
@@ -713,4 +710,60 @@ enum OrbitDiff {
     You(usize),
     Both(usize),
     Neither,
+}
+
+fn day_8() -> Res<()> {
+    let width = 25;
+    let height = 6;
+    let layer_size = width * height;
+
+    let input = read_lines("day_8.in")?
+        .nth(0)
+        .unwrap()?
+        .chars()
+        .collect::<Vec<_>>();
+    let layer_count = input.len() / width / height;
+
+    let (_zeros, ones, twos) = (0..layer_count)
+        .map(|layer| {
+            input[layer * layer_size..(layer + 1) * layer_size]
+                .iter()
+                .fold((0, 0, 0), |(z, o, t), c| match c {
+                    '0' => (z + 1, o, t),
+                    '1' => (z, o + 1, t),
+                    '2' => (z, o, t + 1),
+                    _ => (z, o, t),
+                })
+        })
+        .min_by_key(|acc| acc.0)
+        .unwrap();
+
+    println!("Day 8");
+    println!("  part 1 {}", ones * twos);
+
+    let mut output = (0..height)
+        .map(|_| (0..width).map(|_| '2').collect::<Vec<_>>())
+        .collect::<Vec<_>>();
+
+    for (i, &c) in input.iter().enumerate() {
+        let row = (i % layer_size) / width;
+        let col = i % width;
+        if output[row][col] == '2' {
+            output[row][col] = c;
+        }
+    }
+
+    let out_string = output
+        .iter()
+        .map(|row| {
+            row.iter()
+                .map(|&v| if v == '1' { 'x' } else { ' ' })
+                .collect::<String>()
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    println!("  part 2:");
+    println!("{}", out_string);
+
+    Ok(())
 }
