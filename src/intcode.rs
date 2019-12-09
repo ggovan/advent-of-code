@@ -20,13 +20,13 @@ where
 }
 
 struct Permutations {
-    base: [i32; 5],
-    end: i32,
-    current: i32,
+    base: [i64; 5],
+    end: i64,
+    current: i64,
 }
 
 impl Permutations {
-    fn val_to_arr(value: i32) -> [i32; 5] {
+    fn val_to_arr(value: i64) -> [i64; 5] {
         [
             value / 10000,
             value / 1000 % 10,
@@ -36,7 +36,7 @@ impl Permutations {
         ]
     }
 
-    fn permute(start: i32, end: i32) -> Self {
+    fn permute(start: i64, end: i64) -> Self {
         Permutations {
             base: Permutations::val_to_arr(start),
             end,
@@ -46,7 +46,7 @@ impl Permutations {
 }
 
 impl Iterator for Permutations {
-    type Item = [i32; 5];
+    type Item = [i64; 5];
 
     fn next(&mut self) -> Option<<Self as Iterator>::Item> {
         loop {
@@ -64,45 +64,56 @@ impl Iterator for Permutations {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct Machine {
-    mem: Vec<i32>,
+    mem: Vec<i64>,
     op_index: usize,
-    input: Vec<i32>,
+    input: Vec<i64>,
     input_index: usize,
-    output: Vec<i32>,
+    output: Vec<i64>,
+    relative_base: i64,
 }
 
 #[derive(Debug)]
 enum Mode {
     Immediate,
     Address,
+    Relative,
 }
 impl Mode {
-    fn from(val: i32) -> Self {
+    fn from(val: i64) -> Self {
         match val {
             0 => Mode::Address,
-            _ => Mode::Immediate,
+            1 => Mode::Immediate,
+            2 => Mode::Relative,
+            x => panic!("Unknown mode - {}", x),
         }
     }
 }
 
 impl Machine {
-    fn new(mem: &[i32], input: Vec<i32>) -> Self {
+    fn new(mem: &[i64], input: Vec<i64>) -> Self {
         Machine {
             mem: mem.to_owned(),
-            op_index: 0,
             input,
-            input_index: 0,
-            output: vec![],
+            ..Machine::default()
         }
     }
 
-    fn ck_addr(&self, val: i32) -> usize {
-        if 0 <= val && val < self.mem.len() as i32 {
+    fn ck_inst(&self, val: i64) -> usize {
+        if (0 <= val && val <= 9) || val == 99 {
             val as usize
         } else {
-            panic!("Address is out of range {}!\n{:?}", val, self)
+            panic!("Invalid instruction {}!\n{:?}", val, self)
+        }
+    }
+
+    fn ck_addr(&mut self, val: i64) -> usize {
+        if 0 <= val && val < self.mem.len() as i64 {
+            val as usize
+        } else {
+            self.mem.resize(val as usize + 1, 0);
+            val as usize
         }
     }
 
@@ -110,7 +121,7 @@ impl Machine {
         while self.compute_step().is_some() {}
     }
 
-    fn run_to_output(&mut self, input: i32) -> Option<i32> {
+    fn run_to_output(&mut self, input: i64) -> Option<i64> {
         let out_length = self.output.len();
         self.input.push(input);
         loop {
@@ -124,52 +135,72 @@ impl Machine {
         }
     }
 
-    fn op_to_value(&self, op: i32, mode: Mode) -> i32 {
+    fn read_op_to_value(&mut self, op: i64, mode: Mode) -> i64 {
         match mode {
-            Mode::Immediate => op as i32,
-            Mode::Address => self.mem[self.ck_addr(op)],
+            Mode::Address => {
+                let addr = self.ck_addr(op);
+                self.mem[addr]
+            }
+            Mode::Immediate => op as i64,
+            Mode::Relative => {
+                let addr = self.ck_addr(self.relative_base + op);
+                self.mem[addr]
+            }
         }
+    }
+
+    fn write_op_to_addr(&mut self, op: i64, mode: Mode) -> usize {
+        self.ck_addr(match mode {
+            Mode::Address => op,
+            Mode::Immediate => panic!("Writing in Immediate mode is not supported"),
+            Mode::Relative => self.relative_base + op,
+        })
     }
 
     fn read_op_and_modes(&self) -> (usize, Mode, Mode, Mode) {
         let raw_val = self.mem[self.op_index];
         (
-            self.ck_addr(raw_val % 100),
+            self.ck_inst(raw_val % 100),
             Mode::from(raw_val / 100 % 10),
             Mode::from(raw_val / 1000 % 10),
             Mode::from(raw_val / 10000),
         )
     }
 
-    fn read_operands_1(&self, mode: Mode) -> (i32, usize) {
+    fn read_operands_1(&mut self, mode: Mode) -> (i64, usize) {
         (
-            self.op_to_value(self.mem[self.op_index + 1], mode),
+            self.read_op_to_value(self.mem[self.op_index + 1], mode),
             self.op_index + 2,
         )
     }
-    fn read_operands_2(&self, mode_1: Mode, mode_2: Mode) -> (i32, i32, usize) {
+    fn read_operands_2(&mut self, mode_1: Mode, mode_2: Mode) -> (i64, i64, usize) {
         (
-            self.op_to_value(self.mem[self.op_index + 1], mode_1),
-            self.op_to_value(self.mem[self.op_index + 2], mode_2),
+            self.read_op_to_value(self.mem[self.op_index + 1], mode_1),
+            self.read_op_to_value(self.mem[self.op_index + 2], mode_2),
             self.op_index + 3,
         )
     }
-    fn read_operands_3(&self, mode_1: Mode, mode_2: Mode, mode_3: Mode) -> (i32, i32, i32, usize) {
+    fn read_operands_3(
+        &mut self,
+        mode_1: Mode,
+        mode_2: Mode,
+        mode_3: Mode,
+    ) -> (i64, i64, i64, usize) {
         (
-            self.op_to_value(self.mem[self.op_index + 1], mode_1),
-            self.op_to_value(self.mem[self.op_index + 2], mode_2),
-            self.op_to_value(self.mem[self.op_index + 3], mode_3),
+            self.read_op_to_value(self.mem[self.op_index + 1], mode_1),
+            self.read_op_to_value(self.mem[self.op_index + 2], mode_2),
+            self.read_op_to_value(self.mem[self.op_index + 3], mode_3),
             self.op_index + 4,
         )
     }
 
     fn compute_step(&mut self) -> Option<usize> {
-        let (instruction, mode_1, mode_2, _mode_3) = self.read_op_and_modes();
+        let (instruction, mode_1, mode_2, mode_3) = self.read_op_and_modes();
         match instruction {
             1 => {
                 let (val_1, val_2, dest, next) =
                     self.read_operands_3(mode_1, mode_2, Mode::Immediate);
-                let dest = self.ck_addr(dest);
+                let dest = self.write_op_to_addr(dest, mode_3);
                 self.mem[dest] = val_1 + val_2;
                 self.op_index = next;
                 Some(self.op_index)
@@ -177,14 +208,14 @@ impl Machine {
             2 => {
                 let (val_1, val_2, dest, next) =
                     self.read_operands_3(mode_1, mode_2, Mode::Immediate);
-                let dest = self.ck_addr(dest);
+                let dest = self.write_op_to_addr(dest, mode_3);
                 self.mem[dest] = val_1 * val_2;
                 self.op_index = next;
                 Some(self.op_index)
             }
             3 => {
                 let (dest, next) = self.read_operands_1(Mode::Immediate);
-                let dest = self.ck_addr(dest);
+                let dest = self.write_op_to_addr(dest, mode_1);
                 self.mem[dest] = self.input[self.input_index];
                 self.input_index += 1;
                 self.op_index = next;
@@ -219,7 +250,7 @@ impl Machine {
             7 => {
                 let (val_1, val_2, dest, next) =
                     self.read_operands_3(mode_1, mode_2, Mode::Immediate);
-                let dest = self.ck_addr(dest);
+                let dest = self.write_op_to_addr(dest, mode_3);
                 self.mem[dest] = if val_1 < val_2 { 1 } else { 0 };
                 self.op_index = next;
                 Some(self.op_index)
@@ -227,8 +258,14 @@ impl Machine {
             8 => {
                 let (val_1, val_2, dest, next) =
                     self.read_operands_3(mode_1, mode_2, Mode::Immediate);
-                let dest = self.ck_addr(dest);
+                let dest = self.write_op_to_addr(dest, mode_3);
                 self.mem[dest] = if val_1 == val_2 { 1 } else { 0 };
+                self.op_index = next;
+                Some(self.op_index)
+            }
+            9 => {
+                let (val_1, next) = self.read_operands_1(mode_1);
+                self.relative_base += val_1;
                 self.op_index = next;
                 Some(self.op_index)
             }
@@ -238,10 +275,10 @@ impl Machine {
     }
 }
 
-pub fn day_2_part_1() -> Res<()> {
+pub fn day_2_part_1() -> Res<i64> {
     println!("Day 2");
 
-    let mut mem: Vec<i32> = read_better("day_2.in", &|s| s.parse::<i32>().unwrap())?
+    let mut mem: Vec<i64> = read_better("day_2.in", &|s| s.parse::<i64>().unwrap())?
         .nth(0)
         .unwrap();
 
@@ -250,24 +287,21 @@ pub fn day_2_part_1() -> Res<()> {
 
     let mut machine = Machine {
         mem,
-        op_index: 0,
-        input: vec![],
-        input_index: 0,
-        output: vec![],
+        ..Machine::default()
     };
 
     machine.run_to_completion();
 
     println!("  part 1 {}", machine.mem[0]);
-    Ok(())
+    Ok(machine.mem[0])
 }
 
-pub fn day_2_part_2() -> Res<()> {
-    let input: Vec<i32> = read_better("day_2.in", &|s| s.parse::<i32>().unwrap())?
+pub fn day_2_part_2() -> Res<(i64, i64)> {
+    let input: Vec<i64> = read_better("day_2.in", &|s| s.parse::<i64>().unwrap())?
         .nth(0)
         .unwrap();
 
-    let mut pairs: Vec<(i32, i32)> = vec![];
+    let mut pairs: Vec<(i64, i64)> = vec![];
 
     for noun in 0..100 {
         for verb in 0..100 {
@@ -277,10 +311,7 @@ pub fn day_2_part_2() -> Res<()> {
 
             let mut machine = Machine {
                 mem,
-                op_index: 0,
-                input: vec![],
-                input_index: 0,
-                output: vec![],
+                ..Machine::default()
             };
 
             machine.run_to_completion();
@@ -291,13 +322,13 @@ pub fn day_2_part_2() -> Res<()> {
     }
 
     println!("  part 2 {:?}", pairs);
-    Ok(())
+    Ok(pairs[0])
 }
 
-pub fn day_5() -> Res<()> {
+pub fn day_5() -> Res<(i64, i64)> {
     println!("Day 5");
 
-    let mem: Vec<i32> = read_better("day_5.in", &|s| s.parse::<i32>().unwrap())?
+    let mem: Vec<i64> = read_better("day_5.in", &|s| s.parse::<i64>().unwrap())?
         .nth(0)
         .unwrap();
 
@@ -308,13 +339,16 @@ pub fn day_5() -> Res<()> {
     let mut machine_2 = Machine::new(&mem, vec![5]);
     machine_2.run_to_completion();
     println!("  part 2 {:?}", machine_2.output);
-    Ok(())
+    Ok((
+        *machine.output.last().unwrap(),
+        *machine_2.output.last().unwrap(),
+    ))
 }
 
-pub fn day_7() -> Res<()> {
+pub fn day_7() -> Res<(i64, i64)> {
     println!("Day 7");
 
-    let mem: Vec<i32> = read_better("day_7.in", &|s| s.parse::<i32>().unwrap())?
+    let mem: Vec<i64> = read_better("day_7.in", &|s| s.parse::<i64>().unwrap())?
         .nth(0)
         .unwrap();
     let memref = &mem;
@@ -355,5 +389,104 @@ pub fn day_7() -> Res<()> {
         .max();
     println!("  part 2 {:?}", thruster_2);
 
-    Ok(())
+    Ok((thruster.unwrap(), thruster_2.unwrap()))
+}
+
+pub fn day_9() -> Res<(i64, i64)> {
+    println!("Day 9");
+
+    let mem: Vec<i64> = read_better("day_9.in", &|s| s.parse::<i64>().unwrap())?
+        .nth(0)
+        .unwrap();
+
+    let mut machine = Machine::new(&mem, vec![1]);
+    machine.run_to_completion();
+    println!("  part 1 {:?}", machine.output);
+    println!("    max mem content {:?}", machine.mem.iter().max());
+    println!("    machine mem size {:?}", machine.mem.len());
+
+    let mut machine_2 = Machine::new(&mem, vec![2]);
+    machine_2.run_to_completion();
+    println!("  part 2 {:?}", machine_2.output);
+    println!("    max mem content {:?}", machine_2.mem.iter().max());
+    println!("    machine mem size {:?}", machine_2.mem.len());
+    Ok((
+        *machine.output.last().unwrap(),
+        *machine_2.output.last().unwrap(),
+    ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn produce_copy() {
+        let input = vec![
+            109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99,
+        ];
+        let mut machine = Machine::new(&input, vec![]);
+        machine.run_to_completion();
+        assert_eq!(machine.output, input);
+    }
+
+    #[test]
+    fn output_long_number() {
+        let input = vec![1102, 34915192, 34915192, 7, 4, 7, 99, 0];
+        let mut machine = Machine::new(&input, vec![]);
+        machine.run_to_completion();
+        let length = format!("{}", machine.output[0]).len();
+        assert_eq!(length, 16);
+    }
+
+    #[test]
+    fn output_middle() {
+        let input = vec![104, 1125899906842624, 99];
+        let mut machine = Machine::new(&input, vec![]);
+        machine.run_to_completion();
+        assert_eq!(machine.output[0], input[1]);
+    }
+
+    #[test]
+    fn increases_relative_base() {
+        let input = vec![109, 19];
+        let mut machine = Machine {
+            mem: input,
+            relative_base: 2000,
+            ..Machine::default()
+        };
+        machine.compute_step();
+        assert_eq!(machine.relative_base, 2019);
+    }
+
+    #[test]
+    fn day_2_test() -> Res<()> {
+        assert_eq!(day_2_part_1()?, 3562624);
+        assert_eq!(day_2_part_2()?, (82, 98));
+        Ok(())
+    }
+
+    #[test]
+    fn day_5_test() -> Res<()> {
+        let res = day_5()?;
+        assert_eq!(res.0, 15314507);
+        assert_eq!(res.1, 652726);
+        Ok(())
+    }
+
+    #[test]
+    fn day_7_test() -> Res<()> {
+        let res = day_7()?;
+        assert_eq!(res.0, 38500);
+        assert_eq!(res.1, 33660560);
+        Ok(())
+    }
+
+    #[test]
+    fn day_9_test() -> Res<()> {
+        let res = day_9()?;
+        assert_eq!(res.0, 4006117640);
+        assert_eq!(res.1, 88231);
+        Ok(())
+    }
 }

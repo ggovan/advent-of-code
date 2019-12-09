@@ -24,6 +24,7 @@ fn main() -> Res<()> {
     day_6()?;
     intcode::day_7()?;
     day_8()?;
+    intcode::day_9()?;
 
     Ok(())
 }
