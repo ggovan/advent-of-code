@@ -1,3 +1,4 @@
+mod day_10;
 mod intcode;
 use std::collections::HashMap;
 use std::error::Error;
@@ -25,6 +26,8 @@ fn main() -> Res<()> {
     intcode::day_7()?;
     day_8()?;
     intcode::day_9()?;
+    day_10::day_10()?;
+    intcode::day_11()?;
 
     Ok(())
 }

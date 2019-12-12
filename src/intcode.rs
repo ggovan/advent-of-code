@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::io::{self, BufRead};
@@ -121,9 +122,11 @@ impl Machine {
         while self.compute_step().is_some() {}
     }
 
-    fn run_to_output(&mut self, input: i64) -> Option<i64> {
+    fn run_to_output(&mut self, input: Option<i64>) -> Option<i64> {
+        if let Some(in_val) = input {
+            self.input.push(in_val);
+        }
         let out_length = self.output.len();
-        self.input.push(input);
         loop {
             let next = self.compute_step();
             if next.is_none() {
@@ -357,7 +360,7 @@ pub fn day_7() -> Res<(i64, i64)> {
         .map(move |config| {
             config.iter().fold(0, |acc, &v| {
                 let mut machine_a = Machine::new(memref, vec![v]);
-                machine_a.run_to_output(acc);
+                machine_a.run_to_output(Some(acc));
                 machine_a.output[0]
             })
         })
@@ -377,7 +380,7 @@ pub fn day_7() -> Res<(i64, i64)> {
             loop {
                 let m: &mut Machine = &mut (machines[next_machine]);
                 next_machine = (next_machine + 1) % 5;
-                let output = m.run_to_output(last_output);
+                let output = m.run_to_output(Some(last_output));
                 if let Some(v) = output {
                     last_output = v;
                 } else {
@@ -414,6 +417,123 @@ pub fn day_9() -> Res<(i64, i64)> {
         *machine.output.last().unwrap(),
         *machine_2.output.last().unwrap(),
     ))
+}
+
+#[derive(Debug)]
+enum Direction {
+    Left,
+    Up,
+    Right,
+    Down,
+}
+impl Direction {
+    fn from(v: i64) -> Self {
+        match v {
+            0 => Direction::Up,
+            1 => Direction::Right,
+            2 => Direction::Down,
+            3 => Direction::Left,
+            _ => panic!("Unknown direction {}", v),
+        }
+    }
+    fn to_int(&self) -> i64 {
+        match self {
+            Direction::Up => 0,
+            Direction::Right => 1,
+            Direction::Down => 2,
+            Direction::Left => 3,
+        }
+    }
+    fn rotate(&self, dir: i64) -> Self {
+        Self::from((self.to_int() + if dir == 0 { 3 } else { 1 }) % 4)
+    }
+    fn move_along(&self, (x, y): (i64, i64)) -> (i64, i64) {
+        match self {
+            Direction::Up => (x, y - 1),
+            Direction::Right => (x + 1, y),
+            Direction::Down => (x, y + 1),
+            Direction::Left => (x - 1, y),
+        }
+    }
+}
+
+fn output_map(map: &HashMap<(i64, i64), bool>) {
+    let (x_min, x_max, y_min, y_max) = (
+        map.keys().min_by_key(|x| x.0).unwrap().0,
+        map.keys().max_by_key(|x| x.0).unwrap().0,
+        map.keys().min_by_key(|x| x.1).unwrap().1,
+        map.keys().max_by_key(|x| x.1).unwrap().1,
+    );
+
+    for r in y_min..=y_max {
+        println!(
+            "{}",
+            (x_min..=x_max)
+                .map(|c| {
+                    if map.contains_key(&(c, r)) {
+                        if *map.get(&(c, r)).unwrap_or(&false) {
+                            '#'
+                        } else {
+                            ' '
+                        }
+                    } else {
+                        ' '
+                    }
+                })
+                .collect::<String>()
+        );
+    }
+}
+
+fn painter(machine: &mut Machine, start: bool) -> i64 {
+    let mut surface: HashMap<(i64, i64), bool> = HashMap::new();
+    let mut pos = (0, 0);
+    surface.insert(pos, start);
+    let mut dir = Direction::Up;
+
+    loop {
+        let current = if *surface.get(&pos).unwrap_or(&false) {
+            1
+        } else {
+            0
+        };
+        if let Some(out_val) = machine.run_to_output(Some(current)) {
+            surface.insert(pos, out_val > 0);
+        } else {
+            break;
+        }
+
+        let out_2 = machine.run_to_output(None);
+        if let Some(out_val) = out_2 {
+            dir = dir.rotate(out_val);
+            pos = dir.move_along(pos);
+        } else {
+            break;
+        }
+    }
+
+    output_map(&surface);
+    surface.len() as i64
+}
+
+pub fn day_11() -> Res<(i64, i64)> {
+    println!("Day 11");
+
+    let mem: Vec<i64> = read_better("day_11.in", &|s| s.parse::<i64>().unwrap())?
+        .nth(0)
+        .unwrap();
+
+    let mut machine = Machine::new(&mem, vec![]);
+
+    let res_1 = painter(&mut machine, false);
+    println!("  part 1 {:?}", res_1);
+
+    let mut machine = Machine::new(&mem, vec![]);
+
+    let res_2 = painter(&mut machine, true);
+    println!("  part 2 {:?}", res_2);
+
+    Ok((res_1, res_2))
 }
 
 #[cfg(test)]
