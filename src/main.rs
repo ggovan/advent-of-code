@@ -1,4 +1,8 @@
+#[macro_use]
+extern crate text_io;
+
 mod day_10;
+mod day_12;
 mod intcode;
 use std::collections::HashMap;
 use std::error::Error;
@@ -28,7 +32,8 @@ fn main() -> Res<()> {
     intcode::day_9()?;
     day_10::day_10()?;
     intcode::day_11()?;
-
+    day_12::day_12()?;
+    intcode::day_13()?;
     Ok(())
 }
 

@@ -1,8 +1,9 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fs::File;
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, Read, Stdin};
 use std::path::Path;
+use std::{thread, time};
 
 type Res<T> = Result<T, Box<dyn Error>>;
 
@@ -134,6 +135,24 @@ impl Machine {
             }
             if self.output.len() != out_length {
                 break Some(self.output[out_length]);
+            }
+        }
+    }
+
+    fn run_to_next_input(&mut self, input: Option<i64>) -> Option<usize> {
+        if let Some(in_val) = input {
+            self.input.push(in_val);
+        }
+        loop {
+            if self.mem[self.op_index] == 99 {
+                panic!("Shouldnt be here");
+            }
+            let next = self.compute_step();
+            if next.is_none() {
+                break None;
+            }
+            if self.mem[self.op_index] == 3 {
+                break Some(self.op_index);
             }
         }
     }
@@ -534,6 +553,71 @@ pub fn day_11() -> Res<(i64, i64)> {
     println!("  part 2 {:?}", res_2);
 
     Ok((res_1, res_2))
+}
+
+pub fn day_13() -> Res<()> {
+    println!("Day 13");
+
+    let mem: Vec<i64> = read_better("day_13.in", &|s| s.parse::<i64>().unwrap())?
+        .nth(0)
+        .unwrap();
+
+    let mut machine = Machine::new(&mem, vec![]);
+
+    machine.run_to_completion();
+
+    let squares = machine
+        .output
+        .chunks_exact(3)
+        .map(|chunk| (chunk[0], chunk[1], chunk[2]))
+        .collect::<Vec<_>>();
+    dbg!(squares.len());
+
+    let mut set: HashSet<(i64, i64)> = HashSet::new();
+    let mut map: HashMap<(i64, i64), bool> = HashMap::new();
+    for (x, y, ty) in squares {
+        map.insert((x, y), ty != 0);
+        if ty != 2 {
+            continue;
+        }
+        set.insert((x, y));
+    }
+    output_map(&map);
+
+    println!("  part 1 {:?}", set.len());
+
+    let mut machine = Machine::new(&mem, vec![]);
+    machine.mem[0] = 2;
+    machine.input = vec![1, 0, 0, 0, 0, 0];
+    let mut map: HashMap<(i64, i64), bool> = HashMap::new();
+    let mut stdin = io::stdin();
+
+    machine.run_to_next_input(None);
+    loop {
+        let squares = machine
+            .output
+            .chunks_exact(3)
+            .map(|chunk| (chunk[0], chunk[1], chunk[2]))
+            .collect::<Vec<_>>();
+        for (x, y, ty) in squares {
+            map.insert((x, y), ty != 0);
+        }
+        output_map(&map);
+        machine.output = vec![];
+        // let mut buf: [u8; 1] = ['s' as u8];
+        // stdin.read(&mut buf)?;
+        // let next = match buf[0] as char {
+        //     'a' => -1,
+        //     'd' => 1,
+        //     _ => 0,
+        // };
+        let ten_millis = time::Duration::from_millis(1000);
+        thread::sleep(ten_millis);
+        machine.run_to_next_input(Some(-1)); //dbg!(next)));
+        dbg!("loop");
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]
