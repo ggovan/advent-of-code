@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fs::File;
-use std::io::{self, BufRead, Read, Stdin};
+use std::io::{self, BufRead};
 use std::path::Path;
 use std::{thread, time};
 
@@ -476,7 +476,35 @@ impl Direction {
     }
 }
 
-fn output_map(map: &HashMap<(i64, i64), bool>) {
+trait MapFmt {
+    fn out(&self) -> char;
+}
+
+impl MapFmt for bool {
+    fn out(&self) -> char {
+        if *self {
+            '#'
+        } else {
+            ' '
+        }
+    }
+}
+
+impl MapFmt for i64 {
+    fn out(&self) -> char {
+        match *self {
+            0 => ' ',
+            1 => '#',
+            2 => '*',
+            3 => '_',
+            4 => '.',
+            5 => '5',
+            _ => ' ',
+        }
+    }
+}
+
+fn output_map<T: MapFmt>(map: &HashMap<(i64, i64), T>) {
     let (x_min, x_max, y_min, y_max) = (
         map.keys().min_by_key(|x| x.0).unwrap().0,
         map.keys().max_by_key(|x| x.0).unwrap().0,
@@ -488,17 +516,7 @@ fn output_map(map: &HashMap<(i64, i64), bool>) {
         println!(
             "{}",
             (x_min..=x_max)
-                .map(|c| {
-                    if map.contains_key(&(c, r)) {
-                        if *map.get(&(c, r)).unwrap_or(&false) {
-                            '#'
-                        } else {
-                            ' '
-                        }
-                    } else {
-                        ' '
-                    }
-                })
+                .map(|c| map.get(&(c, r)).map_or(' ', T::out))
                 .collect::<String>()
         );
     }
@@ -588,36 +606,49 @@ pub fn day_13() -> Res<()> {
 
     let mut machine = Machine::new(&mem, vec![]);
     machine.mem[0] = 2;
-    machine.input = vec![1, 0, 0, 0, 0, 0];
-    let mut map: HashMap<(i64, i64), bool> = HashMap::new();
-    let mut stdin = io::stdin();
+    // machine.input = vec![0]; //, 1, -1, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1];
+    let mut map: HashMap<(i64, i64), i64> = HashMap::new();
+    let mut count = 0;
+    let mut prev_ball = 0;
 
     machine.run_to_next_input(None);
     loop {
+        count += 1;
         let squares = machine
             .output
             .chunks_exact(3)
             .map(|chunk| (chunk[0], chunk[1], chunk[2]))
             .collect::<Vec<_>>();
-        for (x, y, ty) in squares {
-            map.insert((x, y), ty != 0);
+        for &(x, y, ty) in &squares {
+            if x == -1 {
+                dbg!(ty);
+            } else {
+                map.insert((x, y), ty);
+            }
         }
         output_map(&map);
-        machine.output = vec![];
-        // let mut buf: [u8; 1] = ['s' as u8];
-        // stdin.read(&mut buf)?;
-        // let next = match buf[0] as char {
-        //     'a' => -1,
-        //     'd' => 1,
-        //     _ => 0,
-        // };
-        let ten_millis = time::Duration::from_millis(1000);
+        // machine.output = vec![];
+
+        let ball = squares.iter().rev().find(|s| s.2 == 4).unwrap();
+        let paddle = squares.iter().rev().find(|s| s.2 == 3).unwrap();
+        let next_ball = match dbg!((prev_ball, ball.0)) {
+            (p, c) if p < c => c + 1,
+            (_, c) => c - 1,
+            // (_, c) => c,
+        };
+        prev_ball = ball.0;
+        let next = match dbg!((next_ball, paddle.0)) {
+            (b, p) if b < p && ball.1 < 21 => -1,
+            (b, p) if b > p && ball.1 < 21 => 1,
+            _ => 0,
+        };
+        let ten_millis = time::Duration::from_millis(200);
         thread::sleep(ten_millis);
-        machine.run_to_next_input(Some(-1)); //dbg!(next)));
-        dbg!("loop");
+        machine.run_to_next_input(Some(dbg!(next)));
+        dbg!("loop", count);
     }
 
-    Ok(())
+    // Ok(())
 }
 
 #[cfg(test)]

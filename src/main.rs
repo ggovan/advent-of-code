@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate text_io;
 
-mod day_10;
+pub mod day_10;
 mod day_12;
 mod intcode;
 use std::collections::HashMap;
@@ -37,7 +37,7 @@ fn main() -> Res<()> {
     Ok(())
 }
 
-fn day_1(mass: &[i32]) -> i32 {
+pub fn day_1(mass: &[i32]) -> i32 {
     mass.iter().map(|m| m / 3 - 2).sum()
 }
 
