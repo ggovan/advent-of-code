@@ -120,7 +120,7 @@ fn gcf(a: i32, b: i32) -> i32 {
 }
 
 pub fn day_10() -> Res<((i32, i32, i32), (i32, i32))> {
-    let day_10_in: String = read_to_string("day_10.in")?;
+    let day_10_in: String = read_to_string("data/2019/day_10.in")?;
     println!("Day 10");
     let res_1 = max_asteroids(&day_10_in);
     println!(" part 1 {:?}", res_1);

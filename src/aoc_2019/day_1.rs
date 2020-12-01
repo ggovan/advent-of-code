@@ -2,7 +2,7 @@ use crate::files::{read_lines, Res};
 
 pub fn day_1() -> Res<()> {
     println!("Day 1");
-    let day_1_in: Vec<_> = read_lines("day_1.in")?
+    let day_1_in: Vec<_> = read_lines("data/2019/day_1.in")?
         .map(|l| l.unwrap().trim().parse::<i32>().unwrap())
         .collect();
     println!("  part 1 {}", day_1_part_1(&day_1_in));

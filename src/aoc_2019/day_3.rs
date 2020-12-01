@@ -2,7 +2,7 @@ use crate::files::{read_better, Res};
 
 pub fn day_3() -> Res<()> {
     println!("Day 3");
-    let input = read_better("day_3.in", &LineSeg::parse)?;
+    let input = read_better("data/2019/day_3.in", &LineSeg::parse)?;
     let wires = input.map(|ss| Wire::from_segments(&ss)).collect::<Vec<_>>();
 
     let intersections = Wire::intersection_points(&wires[0], &wires[1]);

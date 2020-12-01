@@ -282,7 +282,7 @@ impl Machine {
 pub fn day_2_part_1() -> Res<i64> {
     println!("Day 2");
 
-    let mut mem: Vec<i64> = read_better("day_2.in", &|s| s.parse::<i64>().unwrap())?
+    let mut mem: Vec<i64> = read_better("data/2019/day_2.in", &|s| s.parse::<i64>().unwrap())?
         .nth(0)
         .unwrap();
 
@@ -301,7 +301,7 @@ pub fn day_2_part_1() -> Res<i64> {
 }
 
 pub fn day_2_part_2() -> Res<(i64, i64)> {
-    let input: Vec<i64> = read_better("day_2.in", &|s| s.parse::<i64>().unwrap())?
+    let input: Vec<i64> = read_better("data/2019/day_2.in", &|s| s.parse::<i64>().unwrap())?
         .nth(0)
         .unwrap();
 
@@ -332,7 +332,7 @@ pub fn day_2_part_2() -> Res<(i64, i64)> {
 pub fn day_5() -> Res<(i64, i64)> {
     println!("Day 5");
 
-    let mem: Vec<i64> = read_better("day_5.in", &|s| s.parse::<i64>().unwrap())?
+    let mem: Vec<i64> = read_better("data/2019/day_5.in", &|s| s.parse::<i64>().unwrap())?
         .nth(0)
         .unwrap();
 
@@ -352,7 +352,7 @@ pub fn day_5() -> Res<(i64, i64)> {
 pub fn day_7() -> Res<(i64, i64)> {
     println!("Day 7");
 
-    let mem: Vec<i64> = read_better("day_7.in", &|s| s.parse::<i64>().unwrap())?
+    let mem: Vec<i64> = read_better("data/2019/day_7.in", &|s| s.parse::<i64>().unwrap())?
         .nth(0)
         .unwrap();
     let memref = &mem;
@@ -399,7 +399,7 @@ pub fn day_7() -> Res<(i64, i64)> {
 pub fn day_9() -> Res<(i64, i64)> {
     println!("Day 9");
 
-    let mem: Vec<i64> = read_better("day_9.in", &|s| s.parse::<i64>().unwrap())?
+    let mem: Vec<i64> = read_better("data/2019/day_9.in", &|s| s.parse::<i64>().unwrap())?
         .nth(0)
         .unwrap();
 
@@ -538,7 +538,7 @@ fn painter(machine: &mut Machine, start: bool) -> i64 {
 pub fn day_11() -> Res<(i64, i64)> {
     println!("Day 11");
 
-    let mem: Vec<i64> = read_better("day_11.in", &|s| s.parse::<i64>().unwrap())?
+    let mem: Vec<i64> = read_better("data/2019/day_11.in", &|s| s.parse::<i64>().unwrap())?
         .nth(0)
         .unwrap();
 
@@ -559,7 +559,7 @@ pub fn day_11() -> Res<(i64, i64)> {
 pub fn day_13() -> Res<()> {
     println!("Day 13");
 
-    let mem: Vec<i64> = read_better("day_13.in", &|s| s.parse::<i64>().unwrap())?
+    let mem: Vec<i64> = read_better("data/2019/day_13.in", &|s| s.parse::<i64>().unwrap())?
         .nth(0)
         .unwrap();
 

@@ -94,7 +94,7 @@ fn all_digits_incrementing(test: usize) -> bool {
 type Graph<'a> = HashMap<&'a String, Vec<&'a String>>;
 
 fn day_6() -> Res<()> {
-    let input = read_lines("day_6.in")?
+    let input = read_lines("data/2019/day_6.in")?
         .map(|x| {
             let unwrapped = x.unwrap();
             let parts = unwrapped
@@ -176,7 +176,7 @@ fn day_8() -> Res<()> {
     let height = 6;
     let layer_size = width * height;
 
-    let input = read_lines("day_8.in")?
+    let input = read_lines("data/2019/day_8.in")?
         .nth(0)
         .unwrap()?
         .chars()

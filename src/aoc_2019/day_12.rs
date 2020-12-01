@@ -148,7 +148,7 @@ fn gcf(a: i64, b: i64) -> i64 {
 }
 
 pub fn day_12() -> Res<i32> {
-    let input = read_to_string("day_12.in")?;
+    let input = read_to_string("data/2019/day_12.in")?;
     let parsed = parse(&input);
     let mut sys = parsed.clone();
     for _ in 0..1000 {
