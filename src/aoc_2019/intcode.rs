@@ -1,4 +1,4 @@
-use super::files::{read_better, Res};
+use crate::files::{read_better, Res};
 use std::collections::{HashMap, HashSet};
 use std::{thread, time};
 
@@ -120,6 +120,7 @@ impl Machine {
         }
     }
 
+    #[allow(dead_code)]
     fn run_to_next_input(&mut self, input: Option<i64>) -> Option<usize> {
         if let Some(in_val) = input {
             self.input.push(in_val);
@@ -554,6 +555,7 @@ pub fn day_11() -> Res<(i64, i64)> {
     Ok((res_1, res_2))
 }
 
+#[allow(dead_code)]
 pub fn day_13() -> Res<()> {
     println!("Day 13");
 

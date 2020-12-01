@@ -1,4 +1,4 @@
-use super::files::{read_lines, Res};
+use crate::files::{read_lines, Res};
 
 pub fn day_1() -> Res<()> {
     println!("Day 1");

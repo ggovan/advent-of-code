@@ -1,4 +1,4 @@
-use super::files::{read_better, Res};
+use crate::files::{read_better, Res};
 
 pub fn day_3() -> Res<()> {
     println!("Day 3");

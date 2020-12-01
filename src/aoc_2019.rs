@@ -1,16 +1,12 @@
-#[macro_use]
-extern crate text_io;
-
 mod day_1;
 pub mod day_10;
 mod day_12;
 mod day_3;
-mod files;
 mod intcode;
-use files::{read_better, read_lines, Res};
+use crate::files::{read_lines, Res};
 use std::collections::HashMap;
 
-fn main() -> Res<()> {
+pub fn main() -> Res<()> {
     println!("Advent of code!!!");
 
     day_1::day_1()?;
