@@ -1,25 +1,6 @@
+use super::files::{read_better, Res};
 use std::collections::{HashMap, HashSet};
-use std::error::Error;
-use std::fs::File;
-use std::io::{self, BufRead};
-use std::path::Path;
 use std::{thread, time};
-
-type Res<T> = Result<T, Box<dyn Error>>;
-
-fn read_better<P, R, F>(
-    filename: P,
-    item_parser: &'static F,
-) -> io::Result<impl Iterator<Item = Vec<R>>>
-where
-    P: AsRef<Path>,
-    F: Fn(&str) -> R,
-{
-    let file = File::open(filename)?;
-    Ok(io::BufReader::new(file)
-        .lines()
-        .map(move |l| l.unwrap().split(',').map(item_parser).collect::<Vec<R>>()))
-}
 
 struct Permutations {
     base: [i64; 5],
@@ -145,7 +126,7 @@ impl Machine {
         }
         loop {
             if self.mem[self.op_index] == 99 {
-                panic!("Shouldnt be here");
+                panic!("Shouldn't be here");
             }
             let next = self.compute_step();
             if next.is_none() {
