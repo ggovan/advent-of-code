@@ -6,9 +6,7 @@ use std::str::FromStr;
 pub fn day_02() -> Res<()> {
     println!("Day 2");
 
-    let input = read_lines("data/2020/day_02.in")?
-        .map(|l| l.unwrap().parse::<PasswordRule>().unwrap())
-        .collect::<Vec<_>>();
+    let input = load()?;
 
     println!("  part 1: {}", part_1(&input));
     println!("  part 2: {}", part_2(&input));
@@ -16,7 +14,13 @@ pub fn day_02() -> Res<()> {
     Ok(())
 }
 
-struct PasswordRule {
+pub fn load() -> Res<Vec<PasswordRule>> {
+    Ok(read_lines("data/2020/day_02.in")?
+        .map(|l| l.unwrap().parse::<PasswordRule>().unwrap())
+        .collect::<Vec<_>>())
+}
+
+pub struct PasswordRule {
     min: usize,
     max: usize,
     letter: char,
@@ -42,7 +46,7 @@ impl FromStr for PasswordRule {
     }
 }
 
-fn part_1(input: &[PasswordRule]) -> usize {
+pub fn part_1(input: &[PasswordRule]) -> usize {
     input
         .iter()
         .filter(|pr| {
@@ -52,7 +56,7 @@ fn part_1(input: &[PasswordRule]) -> usize {
         .count()
 }
 
-fn part_2(input: &[PasswordRule]) -> usize {
+pub fn part_2(input: &[PasswordRule]) -> usize {
     input
         .iter()
         .filter(|pr| {

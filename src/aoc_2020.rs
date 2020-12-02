@@ -1,13 +1,8 @@
-use std::env;
-
-mod day_02;
-mod day_1;
+pub mod day_02;
+pub mod day_1;
 use crate::files::Res;
 
-pub fn run_all() -> Res<()> {
-    let args: Vec<String> = env::args().collect();
-    let day = args.get(1).map(|n| n.parse::<usize>().unwrap());
-
+pub fn run_all(day: Option<usize>) -> Res<()> {
     if Some(1) == day || day.is_none() {
         day_1::day_1()?;
     }
