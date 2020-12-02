@@ -1,4 +1,6 @@
 use crate::files::{read_lines, Res};
+use lazy_static::*;
+use regex::Regex;
 use std::str::FromStr;
 
 pub fn day_02() -> Res<()> {
@@ -25,21 +27,19 @@ impl FromStr for PasswordRule {
     type Err = Box<dyn std::error::Error>;
 
     fn from_str(input: &str) -> Res<Self> {
-        let (min, rest) = split_two(input, "-");
-        let (max, rest) = split_two(rest, " ");
-        let (letter, password) = split_two(rest, ": ");
+        lazy_static! {
+            static ref RE: Regex = Regex::new(r"^(\d+)-(\d+) (.): (.+)$").unwrap();
+        }
+
+        let captures = RE.captures(input).unwrap();
+
         Ok(PasswordRule {
-            min: min.trim().parse()?,
-            max: max.trim().parse()?,
-            letter: letter.trim().parse()?,
-            password: password.trim().parse()?,
+            min: captures[1].parse()?,
+            max: captures[2].parse()?,
+            letter: captures[3].parse()?,
+            password: captures[4].parse()?,
         })
     }
-}
-
-fn split_two<'a>(s: &'a str, split_on: &str) -> (&'a str, &'a str) {
-    let mut iter = s.splitn(2, split_on);
-    (iter.next().unwrap(), iter.next().unwrap())
 }
 
 fn part_1(input: &[PasswordRule]) -> usize {
