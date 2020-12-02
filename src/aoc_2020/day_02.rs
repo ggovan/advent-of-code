@@ -37,7 +37,7 @@ impl FromStr for PasswordRule {
     }
 }
 
-fn split_two<'a, 'b>(s: &'a str, split_on: &'b str) -> (&'a str, &'a str) {
+fn split_two<'a>(s: &'a str, split_on: &str) -> (&'a str, &'a str) {
     let mut iter = s.splitn(2, split_on);
     (iter.next().unwrap(), iter.next().unwrap())
 }
