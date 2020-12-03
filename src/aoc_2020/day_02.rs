@@ -1,23 +1,47 @@
+use super::Aoc2020;
 use crate::files::{read_lines, Res};
 use lazy_static::*;
 use regex::Regex;
 use std::str::FromStr;
 
-pub fn day_02() -> Res<()> {
-    println!("Day 2");
+pub struct Day02;
 
-    let input = load()?;
+impl Aoc2020 for Day02 {
+    type Input = Vec<PasswordRule>;
+    type Result1 = usize;
+    type Result2 = usize;
 
-    println!("  part 1: {}", part_1(&input));
-    println!("  part 2: {}", part_2(&input));
+    fn day() -> usize {
+        2
+    }
 
-    Ok(())
-}
+    fn load() -> Res<Self::Input> {
+        Ok(read_lines("data/2020/day_02.in")?
+            .map(|l| l.unwrap().parse::<PasswordRule>().unwrap())
+            .collect::<Vec<_>>())
+    }
 
-pub fn load() -> Res<Vec<PasswordRule>> {
-    Ok(read_lines("data/2020/day_02.in")?
-        .map(|l| l.unwrap().parse::<PasswordRule>().unwrap())
-        .collect::<Vec<_>>())
+    fn part_1(input: &Vec<PasswordRule>) -> usize {
+        input
+            .iter()
+            .filter(|pr| {
+                let count = pr.password.chars().filter(|c| *c == pr.letter).count();
+                count >= pr.min && count <= pr.max
+            })
+            .count()
+    }
+
+    fn part_2(input: &Vec<PasswordRule>) -> usize {
+        input
+            .iter()
+            .filter(|pr| {
+                // indexing strings is a pain due to utf-8, just use bytes
+                let bytes = pr.password.as_bytes();
+                let target = pr.letter as u8;
+                (bytes[pr.min - 1] == target) ^ (bytes[pr.max - 1] == target)
+            })
+            .count()
+    }
 }
 
 pub struct PasswordRule {
@@ -44,26 +68,4 @@ impl FromStr for PasswordRule {
             password: captures[4].parse()?,
         })
     }
-}
-
-pub fn part_1(input: &[PasswordRule]) -> usize {
-    input
-        .iter()
-        .filter(|pr| {
-            let count = pr.password.chars().filter(|c| *c == pr.letter).count();
-            count >= pr.min && count <= pr.max
-        })
-        .count()
-}
-
-pub fn part_2(input: &[PasswordRule]) -> usize {
-    input
-        .iter()
-        .filter(|pr| {
-            // indexing strings is a pain due to utf-8, just use bytes
-            let bytes = pr.password.as_bytes();
-            let target = pr.letter as u8;
-            (bytes[pr.min - 1] == target) ^ (bytes[pr.max - 1] == target)
-        })
-        .count()
 }

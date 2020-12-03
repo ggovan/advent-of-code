@@ -1,24 +1,33 @@
+use super::Aoc2020;
 use crate::files::Res;
 use std::fs::read_to_string;
 
-pub fn day_03() -> Res<()> {
-    println!("Day 3");
+pub struct Day03;
 
-    let input = load()?;
+impl Aoc2020 for Day03 {
+    type Input = Vec<Vec<char>>;
+    type Result1 = i64;
+    type Result2 = i64;
 
-    println!("  part 1: {}", part_1(&input));
-    println!("  part 2: {}", part_2(&input));
+    fn day() -> usize {
+        3
+    }
 
-    Ok(())
-}
+    fn load() -> Res<Vec<Vec<char>>> {
+        let input: String = read_to_string("data/2020/day_03.in")?;
+        Ok(input.lines().map(|l| l.chars().collect()).collect())
+    }
 
-pub fn load() -> Res<Vec<Vec<char>>> {
-    let input: String = read_to_string("data/2020/day_03.in")?;
-    Ok(input.lines().map(|l| l.chars().collect()).collect())
-}
+    fn part_1(input: &Vec<Vec<char>>) -> i64 {
+        run_slope(input, 3, 1)
+    }
 
-pub fn part_1(input: &Vec<Vec<char>>) -> i64 {
-    run_slope(input, 3, 1)
+    fn part_2(input: &Vec<Vec<char>>) -> i64 {
+        [(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)]
+            .iter()
+            .map(move |(x, y)| run_slope(input, *x as usize, *y as usize))
+            .product()
+    }
 }
 
 fn run_slope(input: &Vec<Vec<char>>, dx: usize, dy: usize) -> i64 {
@@ -34,13 +43,6 @@ fn run_slope(input: &Vec<Vec<char>>, dx: usize, dy: usize) -> i64 {
         y += dy;
     }
     trees
-}
-
-pub fn part_2(input: &Vec<Vec<char>>) -> i64 {
-    [(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)]
-        .iter()
-        .map(move |(x, y)| run_slope(input, *x as usize, *y as usize))
-        .product()
 }
 
 #[cfg(test)]
@@ -61,7 +63,7 @@ mod tests {
                      #...##....#\n\
                      .#..#...#.#";
         let input: Vec<Vec<char>> = input.lines().map(|l| l.chars().collect()).collect();
-        let res = part_1(&input);
+        let res = run_slope(&input, 3, 1);
         assert_eq!(res, 7);
     }
 }

@@ -1,20 +1,46 @@
-pub mod day_02;
-pub mod day_03;
-pub mod day_1;
+mod day_02;
+pub use day_02::Day02;
+mod day_03;
+pub use day_03::Day03;
+mod day_1;
+pub use day_1::Day01;
+
 use crate::files::Res;
+use std::fmt::Display;
 
 pub fn run_all(day: Option<usize>) -> Res<()> {
-    if Some(1) == day || day.is_none() {
-        day_1::day_1()?;
-    }
-
-    if Some(2) == day || day.is_none() {
-        day_02::day_02()?;
-    }
-
-    if Some(3) == day || day.is_none() {
-        day_03::day_03()?;
-    }
+    Day01::run_me_maybe(day)?;
+    Day02::run_me_maybe(day)?;
+    Day03::run_me_maybe(day)?;
 
     Ok(())
+}
+
+pub trait Aoc2020 {
+    type Input;
+    type Result1: Display;
+    type Result2: Display;
+
+    fn day() -> usize;
+    fn load() -> Res<Self::Input>;
+    fn part_1(input: &Self::Input) -> Self::Result1;
+    fn part_2(input: &Self::Input) -> Self::Result2;
+
+    fn run() -> Res<()> {
+        println!("Day {}", Self::day());
+
+        let input = Self::load()?;
+
+        println!("  part 1: {}", Self::part_1(&input));
+        println!("  part 2: {}", Self::part_2(&input));
+
+        Ok(())
+    }
+
+    fn run_me_maybe(day: Option<usize>) -> Res<()> {
+        if Some(Self::day()) == day || day.is_none() {
+            Self::run()?;
+        }
+        Ok(())
+    }
 }
