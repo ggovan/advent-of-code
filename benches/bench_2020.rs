@@ -11,6 +11,10 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     let input = aoc_2020::day_02::load().unwrap();
     c.bench_function("2020 2 1", |b| b.iter(|| aoc_2020::day_02::part_1(&input)));
     c.bench_function("2020 2 2", |b| b.iter(|| aoc_2020::day_02::part_2(&input)));
+
+    let input = aoc_2020::day_03::load().unwrap();
+    c.bench_function("2020 3 1", |b| b.iter(|| aoc_2020::day_03::part_1(&input)));
+    c.bench_function("2020 3 2", |b| b.iter(|| aoc_2020::day_03::part_2(&input)));
 }
 
 criterion_group!(benches, criterion_benchmark);
