@@ -2,7 +2,6 @@ use super::Aoc2020;
 use crate::files::{read_lines, Res};
 use lazy_static::*;
 use regex::Regex;
-use std::collections::HashMap;
 
 pub struct Day04;
 
@@ -46,34 +45,27 @@ impl Aoc2020 for Day04 {
     }
 
     fn part_2(input: &Self::Input) -> Self::Result2 {
-        let fn_map = create_fn_map();
-        input.iter().filter(|pp| is_valid(&fn_map, pp)).count()
+        input.iter().filter(|pp| is_valid(pp)).count()
     }
 }
 
-type FnMap = HashMap<String, &'static dyn Fn(&str) -> bool>;
-
-fn create_fn_map() -> FnMap {
-    // I tried to make this a lazy_static in `is_valid`.
-    let mut m: HashMap<String, &'static dyn Fn(&str) -> bool> = HashMap::new();
-    m.insert("byr".to_owned(), &byr);
-    m.insert("iyr".to_owned(), &iyr);
-    m.insert("eyr".to_owned(), &eyr);
-    m.insert("hgt".to_owned(), &hgt);
-    m.insert("hcl".to_owned(), &hcl);
-    m.insert("ecl".to_owned(), &ecl);
-    m.insert("pid".to_owned(), &pid);
-    m.insert("cid".to_owned(), &cid);
-    m
+fn check_rules((k, v): &(std::string::String, std::string::String)) -> bool {
+    match k.as_ref() {
+        "byr" => byr(v),
+        "iyr" => iyr(v),
+        "eyr" => eyr(v),
+        "hgt" => hgt(v),
+        "hcl" => hcl(v),
+        "ecl" => ecl(v),
+        "pid" => pid(v),
+        "cid" => true,
+        _ => panic!("Unknown key"),
+    }
 }
 
-fn is_valid(fn_map: &FnMap, pp: &[(std::string::String, std::string::String)]) -> bool {
-    (pp.len() == 8
-        || pp.len() == 7
-            && pp
-                .iter()
-                .all(|(key, _): &(std::string::String, std::string::String)| key != "cid"))
-        && pp.iter().all(|(k, v)| fn_map[k](v))
+fn is_valid(pp: &[(std::string::String, std::string::String)]) -> bool {
+    (pp.len() == 8 || pp.len() == 7 && pp.iter().all(|(key, _)| key != "cid"))
+        && pp.iter().all(check_rules)
 }
 
 fn byr(s: &str) -> bool {
@@ -110,28 +102,21 @@ fn hgt(s: &str) -> bool {
 }
 
 fn hcl(s: &str) -> bool {
-    lazy_static! {
-        static ref RE: Regex = Regex::new(r"^#[0-9a-f]{6}$").unwrap();
-    }
-    RE.is_match(s)
+    let mut iter = s.chars();
+    s.len() == 7
+        && iter.next().unwrap() == '#'
+        && iter.all(|c| ('0'..='9').contains(&c) || ('a'..='f').contains(&c))
 }
 
 fn ecl(s: &str) -> bool {
-    lazy_static! {
-        static ref RE: Regex = Regex::new(r"^(amb|blu|brn|grn|gry|hzl|oth)$").unwrap();
+    match s {
+        "amb" | "blu" | "brn" | "grn" | "gry" | "hzl" | "oth" => true,
+        _ => false,
     }
-    RE.is_match(s)
 }
 
 fn pid(s: &str) -> bool {
-    lazy_static! {
-        static ref RE: Regex = Regex::new(r"^[0-9]{9}$").unwrap();
-    }
-    RE.is_match(s)
-}
-
-fn cid(_: &str) -> bool {
-    true
+    s.len() == 9 && s.chars().all(|c| ('0'..='9').contains(&c))
 }
 
 #[cfg(test)]
@@ -208,8 +193,6 @@ mod tests {
 
     #[test]
     fn test_example_1() {
-        let fn_map = create_fn_map();
-
         let pp = vec![
             ("eyr".to_owned(), "1972".to_owned()),
             ("cid".to_owned(), "100".to_owned()),
@@ -220,6 +203,6 @@ mod tests {
             ("iyr".to_owned(), "2018".to_owned()),
             ("byr".to_owned(), "1926".to_owned()),
         ];
-        assert_eq!(is_valid(&fn_map, &pp), false);
+        assert_eq!(is_valid(&pp), false);
     }
 }
