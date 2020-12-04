@@ -19,16 +19,16 @@ impl Aoc2020 for Day04 {
         Ok(read_lines("data/2020/day_04.in")?
             .map(|l| l.unwrap())
             .fold::<Self::Input, _>(vec![vec![]], |mut out, line| {
-                if line.len() == 0 {
+                if line.is_empty() {
                     out.push(vec![]);
                 }
 
                 out.last_mut().unwrap().append(
                     &mut line
-                        .split(" ")
-                        .filter(|w| w.len() != 0)
+                        .split(' ')
+                        .filter(|w| !w.is_empty())
                         .map(|c| {
-                            let mut d = c.split(":");
+                            let mut d = c.split(':');
                             (d.next().unwrap().to_owned(), d.next().unwrap().to_owned())
                         })
                         .collect::<Vec<_>>(),
@@ -78,17 +78,17 @@ fn is_valid(fn_map: &FnMap, pp: &[(std::string::String, std::string::String)]) -
 
 fn byr(s: &str) -> bool {
     let v = s.parse::<usize>().unwrap();
-    v >= 1920 && v <= 2002 && s.len() == 4
+    (1920..=2002).contains(&v) && s.len() == 4
 }
 
 fn iyr(s: &str) -> bool {
     let v = s.parse::<usize>().unwrap();
-    v >= 2010 && v <= 2020 && s.len() == 4
+    (2010..=2020).contains(&v) && s.len() == 4
 }
 
 fn eyr(s: &str) -> bool {
     let v = s.parse::<usize>().unwrap();
-    v >= 2020 && v <= 2030 && s.len() == 4
+    (2020..=2030).contains(&v) && s.len() == 4
 }
 
 fn hgt(s: &str) -> bool {
@@ -100,8 +100,8 @@ fn hgt(s: &str) -> bool {
             captures[1]
                 .parse::<usize>()
                 .map(|v| match &captures[2] {
-                    "cm" => v >= 150 && v <= 193,
-                    "in" => v >= 59 && v <= 76,
+                    "cm" => (150..=193).contains(&v),
+                    "in" => (59..=76).contains(&v),
                     _ => false,
                 })
                 .ok()

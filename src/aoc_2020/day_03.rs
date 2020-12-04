@@ -30,7 +30,7 @@ impl Aoc2020 for Day03 {
     }
 }
 
-fn run_slope(input: &Vec<Vec<char>>, dx: usize, dy: usize) -> i64 {
+fn run_slope(input: &[Vec<char>], dx: usize, dy: usize) -> i64 {
     let width = input[0].len();
     let mut x = 0;
     let mut y = 0;

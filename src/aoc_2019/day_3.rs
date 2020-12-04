@@ -47,7 +47,7 @@ struct Wire {
 
 impl LineSeg {
     fn parse(input: &str) -> Self {
-        let (direction, multiplier) = match input.chars().nth(0).unwrap() {
+        let (direction, multiplier) = match input.chars().next().unwrap() {
             'R' => (Direction::H, 1),
             'L' => (Direction::H, -1),
             'U' => (Direction::V, 1),

@@ -177,7 +177,7 @@ fn day_8() -> Res<()> {
     let layer_size = width * height;
 
     let input = read_lines("data/2019/day_8.in")?
-        .nth(0)
+        .next()
         .unwrap()?
         .chars()
         .collect::<Vec<_>>();

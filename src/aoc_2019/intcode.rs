@@ -283,7 +283,7 @@ pub fn day_2_part_1() -> Res<i64> {
     println!("Day 2");
 
     let mut mem: Vec<i64> = read_better("data/2019/day_2.in", &|s| s.parse::<i64>().unwrap())?
-        .nth(0)
+        .next()
         .unwrap();
 
     mem[1] = 12;
@@ -302,7 +302,7 @@ pub fn day_2_part_1() -> Res<i64> {
 
 pub fn day_2_part_2() -> Res<(i64, i64)> {
     let input: Vec<i64> = read_better("data/2019/day_2.in", &|s| s.parse::<i64>().unwrap())?
-        .nth(0)
+        .next()
         .unwrap();
 
     let mut pairs: Vec<(i64, i64)> = vec![];
@@ -333,7 +333,7 @@ pub fn day_5() -> Res<(i64, i64)> {
     println!("Day 5");
 
     let mem: Vec<i64> = read_better("data/2019/day_5.in", &|s| s.parse::<i64>().unwrap())?
-        .nth(0)
+        .next()
         .unwrap();
 
     let mut machine = Machine::new(&mem, vec![1]);
@@ -353,7 +353,7 @@ pub fn day_7() -> Res<(i64, i64)> {
     println!("Day 7");
 
     let mem: Vec<i64> = read_better("data/2019/day_7.in", &|s| s.parse::<i64>().unwrap())?
-        .nth(0)
+        .next()
         .unwrap();
     let memref = &mem;
 
@@ -400,7 +400,7 @@ pub fn day_9() -> Res<(i64, i64)> {
     println!("Day 9");
 
     let mem: Vec<i64> = read_better("data/2019/day_9.in", &|s| s.parse::<i64>().unwrap())?
-        .nth(0)
+        .next()
         .unwrap();
 
     let mut machine = Machine::new(&mem, vec![1]);
@@ -539,7 +539,7 @@ pub fn day_11() -> Res<(i64, i64)> {
     println!("Day 11");
 
     let mem: Vec<i64> = read_better("data/2019/day_11.in", &|s| s.parse::<i64>().unwrap())?
-        .nth(0)
+        .next()
         .unwrap();
 
     let mut machine = Machine::new(&mem, vec![]);
@@ -560,7 +560,7 @@ pub fn day_13() -> Res<()> {
     println!("Day 13");
 
     let mem: Vec<i64> = read_better("data/2019/day_13.in", &|s| s.parse::<i64>().unwrap())?
-        .nth(0)
+        .next()
         .unwrap();
 
     let mut machine = Machine::new(&mem, vec![]);
