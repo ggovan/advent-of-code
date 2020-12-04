@@ -5,6 +5,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     bench::<aoc_2020::Day01>(c);
     bench::<aoc_2020::Day02>(c);
     bench::<aoc_2020::Day03>(c);
+    bench::<aoc_2020::Day04>(c);
 }
 
 fn bench<Day: aoc_2020::Aoc2020>(c: &mut Criterion) {
