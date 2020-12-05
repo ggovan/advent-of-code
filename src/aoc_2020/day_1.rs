@@ -15,7 +15,7 @@ impl Aoc2020 for Day01 {
         let mut input: Vec<_> = read_lines("data/2020/day_01.in")?
             .map(|l| l.unwrap().trim().parse::<i32>().unwrap())
             .collect();
-        input.sort();
+        input.sort_unstable();
         Ok(input)
     }
 

@@ -109,10 +109,7 @@ fn hcl(s: &str) -> bool {
 }
 
 fn ecl(s: &str) -> bool {
-    match s {
-        "amb" | "blu" | "brn" | "grn" | "gry" | "hzl" | "oth" => true,
-        _ => false,
-    }
+    matches!(s, "amb" | "blu" | "brn" | "grn" | "gry" | "hzl" | "oth")
 }
 
 fn pid(s: &str) -> bool {
