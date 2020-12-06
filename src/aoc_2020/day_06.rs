@@ -6,8 +6,8 @@ pub struct Day06;
 
 impl Aoc2020 for Day06 {
     type Input = Vec<Vec<String>>;
-    type Result1 = usize;
-    type Result2 = usize;
+    type Result1 = u32;
+    type Result2 = u32;
 
     fn day() -> usize {
         6
@@ -24,10 +24,10 @@ impl Aoc2020 for Day06 {
                 g.iter()
                     .map(|p| {
                         p.chars()
-                            .fold(0 as u32, |acc, c| acc | 1 << (c as usize - 'a' as usize))
+                            .fold(0_u32, |acc, c| acc | 1 << (c as usize - 'a' as usize))
                     })
-                    .fold(0 as u32, |acc, p| acc | p)
-                    .count_ones() as usize
+                    .fold(0_u32, |acc, p| acc | p)
+                    .count_ones()
             })
             .sum()
     }
@@ -39,19 +39,19 @@ impl Aoc2020 for Day06 {
                 g.iter()
                     .map(|p| {
                         p.chars()
-                            .fold(0 as u32, |acc, c| acc | (1 << (c as u32 - 'a' as u32)))
+                            .fold(0_u32, |acc, c| acc | (1 << (c as u32 - 'a' as u32)))
                     })
                     .fold(0xffffffff, |acc, c| acc & c)
-                    .count_ones() as usize
+                    .count_ones()
             })
-            .sum::<usize>()
+            .sum()
     }
 }
 
 fn parse_in(s: &str) -> Vec<Vec<String>> {
     s.split("\n\n")
         .map(|s| {
-            s.split("\n")
+            s.split('\n')
                 .filter(|s| !s.is_empty())
                 .map(|s2| s2.to_owned())
                 .collect::<Vec<_>>()
