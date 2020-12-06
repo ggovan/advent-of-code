@@ -38,14 +38,9 @@ impl Aoc2020 for Day05 {
 }
 
 fn seat_number(s: &str) -> usize {
-    let mut v = 0;
-    for c in s.chars() {
-        v <<= 1;
-        if c == 'B' || c == 'R' {
-            v += 1;
-        }
-    }
-    v
+    s.chars().fold(0, |n, c| {
+        (n << 1) + if c == 'B' || c == 'R' { 1 } else { 0 }
+    })
 }
 
 #[cfg(test)]
