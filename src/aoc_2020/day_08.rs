@@ -32,27 +32,27 @@ impl Aoc2020 for Day08 {
         let mut input = input.clone();
 
         for i in 0..input.len() {
-            let code = input[i].code;
+            let code = input[i];
             match code {
-                InstructionCode::Jmp => {
-                    input[i].code = InstructionCode::Nop;
+                Instruction::Jmp(v) => {
+                    input[i] = Instruction::Nop(v);
                     let mut c = Computer::new(input);
                     if halts(&mut c) {
                         return c.acc;
                     }
                     // since the program isn't mutated, we can move it back to use on the next iteration
                     input = c.program;
-                    input[i].code = InstructionCode::Jmp;
+                    input[i] = Instruction::Jmp(v);
                 }
-                InstructionCode::Nop => {
-                    input[i].code = InstructionCode::Jmp;
+                Instruction::Nop(v) => {
+                    input[i] = Instruction::Jmp(v);
                     let mut c = Computer::new(input);
                     if halts(&mut c) {
                         return c.acc;
                     }
                     // since the program isn't mutated, we can move it back to use on the next iteration
                     input = c.program;
-                    input[i].code = InstructionCode::Nop;
+                    input[i] = Instruction::Nop(v);
                 }
                 _ => (),
             }
@@ -77,40 +77,25 @@ fn halts(c: &mut Computer) -> bool {
 }
 
 #[derive(Debug, PartialEq, Copy, Clone)]
-pub enum InstructionCode {
-    Acc,
-    Jmp,
-    Nop,
-}
-
-impl FromStr for InstructionCode {
-    type Err = Box<dyn std::error::Error>;
-
-    fn from_str(input: &str) -> Res<Self> {
-        use InstructionCode::*;
-        Ok(match input {
-            "acc" => Acc,
-            "jmp" => Jmp,
-            "nop" => Nop,
-            x => panic!(format!("Unknown instruction {}", x)),
-        })
-    }
-}
-
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub struct Instruction {
-    code: InstructionCode,
-    value: i64,
+pub enum Instruction {
+    Acc(i64),
+    Jmp(i64),
+    Nop(i64),
 }
 
 impl FromStr for Instruction {
     type Err = Box<dyn std::error::Error>;
 
     fn from_str(input: &str) -> Res<Self> {
+        use Instruction::*;
         let mut i = input.split(' ');
-        Ok(Instruction {
-            code: i.next().unwrap().parse().unwrap(),
-            value: i.next().unwrap().parse().unwrap(),
+        let code = i.next().unwrap();
+        let value = i.next().unwrap().parse().unwrap();
+        Ok(match code {
+            "acc" => Acc(value),
+            "jmp" => Jmp(value),
+            "nop" => Nop(value),
+            x => panic!(format!("Unknown instruction {} {}", x, value)),
         })
     }
 }
@@ -131,14 +116,11 @@ impl Computer {
     }
 
     fn run_step(&mut self) {
-        use InstructionCode::*;
+        use Instruction::*;
         match self.program[self.ptr] {
-            Instruction {
-                code: Nop,
-                value: _,
-            } => self.ptr += 1,
-            Instruction { code: Jmp, value } => self.ptr = (self.ptr as i64 + value) as usize,
-            Instruction { code: Acc, value } => {
+            Nop(_) => self.ptr += 1,
+            Jmp(value) => self.ptr = (self.ptr as i64 + value) as usize,
+            Acc(value) => {
                 self.acc += value;
                 self.ptr += 1
             }
@@ -152,27 +134,10 @@ mod tests {
 
     #[test]
     fn test_parse_instruction() {
-        assert_eq!(
-            "acc +3".parse::<Instruction>().unwrap(),
-            Instruction {
-                code: InstructionCode::Acc,
-                value: 3,
-            }
-        );
-        assert_eq!(
-            "jmp -99".parse::<Instruction>().unwrap(),
-            Instruction {
-                code: InstructionCode::Jmp,
-                value: -99,
-            }
-        );
-        assert_eq!(
-            "nop +0".parse::<Instruction>().unwrap(),
-            Instruction {
-                code: InstructionCode::Nop,
-                value: 0,
-            }
-        );
+        use Instruction::*;
+        assert_eq!("acc +3".parse::<Instruction>().unwrap(), Acc(3));
+        assert_eq!("jmp -99".parse::<Instruction>().unwrap(), Jmp(-99));
+        assert_eq!("nop +0".parse::<Instruction>().unwrap(), Nop(0));
     }
 
     #[test]
