@@ -47,13 +47,13 @@ impl Iterator for Permutations {
 }
 
 #[derive(Debug, Default)]
-struct Machine {
-    mem: Vec<i64>,
-    op_index: usize,
-    input: Vec<i64>,
-    input_index: usize,
-    output: Vec<i64>,
-    relative_base: i64,
+pub struct Machine {
+    pub mem: Vec<i64>,
+    pub op_index: usize,
+    pub input: Vec<i64>,
+    pub input_index: usize,
+    pub output: Vec<i64>,
+    pub relative_base: i64,
 }
 
 #[derive(Debug)]
@@ -74,7 +74,7 @@ impl Mode {
 }
 
 impl Machine {
-    fn new(mem: &[i64], input: Vec<i64>) -> Self {
+    pub fn new(mem: &[i64], input: Vec<i64>) -> Self {
         Machine {
             mem: mem.to_owned(),
             input,
@@ -99,11 +99,11 @@ impl Machine {
         }
     }
 
-    fn run_to_completion(&mut self) {
+    pub fn run_to_completion(&mut self) {
         while self.compute_step().is_some() {}
     }
 
-    fn run_to_output(&mut self, input: Option<i64>) -> Option<i64> {
+    pub fn run_to_output(&mut self, input: Option<i64>) -> Option<i64> {
         if let Some(in_val) = input {
             self.input.push(in_val);
         }
@@ -276,56 +276,12 @@ impl Machine {
             x => panic!("Invalid instruction {}", x),
         }
     }
-}
 
-pub fn day_2_part_1() -> Res<i64> {
-    println!("Day 2");
-
-    let mut mem: Vec<i64> = read_better("data/2019/day_2.in", &|s| s.parse::<i64>().unwrap())?
-        .next()
-        .unwrap();
-
-    mem[1] = 12;
-    mem[2] = 2;
-
-    let mut machine = Machine {
-        mem,
-        ..Machine::default()
-    };
-
-    machine.run_to_completion();
-
-    println!("  part 1 {}", machine.mem[0]);
-    Ok(machine.mem[0])
-}
-
-pub fn day_2_part_2() -> Res<(i64, i64)> {
-    let input: Vec<i64> = read_better("data/2019/day_2.in", &|s| s.parse::<i64>().unwrap())?
-        .next()
-        .unwrap();
-
-    let mut pairs: Vec<(i64, i64)> = vec![];
-
-    for noun in 0..100 {
-        for verb in 0..100 {
-            let mut mem = input.clone();
-            mem[1] = noun;
-            mem[2] = verb;
-
-            let mut machine = Machine {
-                mem,
-                ..Machine::default()
-            };
-
-            machine.run_to_completion();
-            if machine.mem[0] == 19_690_720 {
-                pairs.push((noun, verb))
-            }
-        }
+    pub fn load_tape_from_file(file: &str) -> Res<Vec<i64>> {
+        Ok(read_better(file, &|s| s.parse::<i64>().unwrap())?
+            .next()
+            .unwrap())
     }
-
-    println!("  part 2 {:?}", pairs);
-    Ok(pairs[0])
 }
 
 pub fn day_5() -> Res<(i64, i64)> {
@@ -678,13 +634,6 @@ mod tests {
         };
         machine.compute_step();
         assert_eq!(machine.relative_base, 2019);
-    }
-
-    #[test]
-    fn day_2_test() -> Res<()> {
-        assert_eq!(day_2_part_1()?, 3562624);
-        assert_eq!(day_2_part_2()?, (82, 98));
-        Ok(())
     }
 
     #[test]

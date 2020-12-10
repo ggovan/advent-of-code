@@ -1,24 +1,33 @@
+use crate::aoc_2020::Aoc2020;
 use crate::files::{read_lines, Res};
 
-pub fn day_1() -> Res<()> {
-    println!("Day 1");
-    let day_1_in: Vec<_> = read_lines("data/2019/day_1.in")?
-        .map(|l| l.unwrap().trim().parse::<i32>().unwrap())
-        .collect();
-    println!("  part 1 {}", day_1_part_1(&day_1_in));
-    println!("  part 2 {}", day_1_part_2(&day_1_in));
-    Ok(())
-}
+pub struct Day01;
 
-pub fn day_1_part_1(mass: &[i32]) -> i32 {
-    mass.iter().map(|m| m / 3 - 2).sum()
-}
+impl Aoc2020 for Day01 {
+    type Input = Vec<i32>;
+    type Result1 = i32;
+    type Result2 = i32;
 
-fn day_1_part_2(mass: &[i32]) -> i32 {
-    mass.iter()
-        .map(|m| m / 3 - 2)
-        .map(|m| m + day_1_part_2_fuel(m))
-        .sum()
+    fn day() -> usize {
+        1
+    }
+    fn load() -> Res<Self::Input> {
+        Ok(read_lines("data/2019/day_1.in")?
+            .map(|l| l.unwrap().trim().parse::<i32>().unwrap())
+            .collect())
+    }
+
+    fn part_1(masses: &Self::Input) -> Self::Result1 {
+        masses.iter().map(|m| m / 3 - 2).sum()
+    }
+
+    fn part_2(masses: &Vec<i32>) -> Self::Result2 {
+        masses
+            .iter()
+            .map(|m| m / 3 - 2)
+            .map(|m| m + day_1_part_2_fuel(m))
+            .sum()
+    }
 }
 
 fn day_1_part_2_fuel(mass: i32) -> i32 {

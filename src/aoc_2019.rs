@@ -1,3 +1,4 @@
+mod day_02;
 mod day_1;
 pub mod day_10;
 mod day_12;
@@ -11,9 +12,9 @@ use std::collections::HashMap;
 pub fn main(day: Option<usize>) -> Res<()> {
     println!("Advent of code!!!");
 
-    day_1::day_1()?;
-    intcode::day_2_part_1()?;
-    intcode::day_2_part_2()?;
+    day_1::Day01::run_me_maybe(None)?;
+    day_02::Day02::run_me_maybe(None)?;
+
     day_3::day_3()?;
     day_4();
     intcode::day_5()?;
