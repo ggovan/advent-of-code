@@ -1,6 +1,5 @@
 use super::Aoc2020;
 use crate::files::{read_lines, Res};
-use std::collections::HashSet;
 use std::str::FromStr;
 
 pub struct Day08;
@@ -63,14 +62,15 @@ impl Aoc2020 for Day08 {
 }
 
 fn halts(c: &mut Computer) -> bool {
-    let mut used_instructions: HashSet<usize> = HashSet::new();
+    let mut used_instructions: Vec<bool> = Vec::with_capacity(c.program.len());
+    used_instructions.resize(c.program.len(), false);
 
-    while !used_instructions.contains(&c.ptr) {
+    while !used_instructions[c.ptr] {
+        used_instructions[c.ptr] = true;
+        c.run_step();
         if c.ptr == c.program.len() {
             return true;
         }
-        used_instructions.insert(c.ptr);
-        c.run_step();
     }
 
     false
