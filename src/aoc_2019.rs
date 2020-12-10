@@ -1,12 +1,14 @@
 mod day_1;
 pub mod day_10;
 mod day_12;
+pub mod day_14;
 mod day_3;
 mod intcode;
+use crate::aoc_2020::Aoc2020;
 use crate::files::{read_lines, Res};
 use std::collections::HashMap;
 
-pub fn main() -> Res<()> {
+pub fn main(day: Option<usize>) -> Res<()> {
     println!("Advent of code!!!");
 
     day_1::day_1()?;
@@ -22,7 +24,8 @@ pub fn main() -> Res<()> {
     day_10::day_10()?;
     intcode::day_11()?;
     day_12::day_12()?;
-    // intcode::day_13()?;
+    intcode::day_13()?;
+    day_14::Day14::run_me_maybe(day)?;
     Ok(())
 }
 

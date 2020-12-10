@@ -131,7 +131,7 @@ fn until_stable(starting: &Vec<Asteroid>) -> i64 {
     let y = stable_y.unwrap();
     let z = stable_z.unwrap();
 
-    dbg!("{} {} {}", x, y, z);
+    dbg!(x, y, z);
 
     lcm(z, lcm(x, y))
 }

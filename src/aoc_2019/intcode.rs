@@ -1,6 +1,5 @@
 use crate::files::{read_better, Res};
 use std::collections::{HashMap, HashSet};
-use std::{thread, time};
 
 struct Permutations {
     base: [i64; 5],
@@ -127,7 +126,7 @@ impl Machine {
         }
         loop {
             if self.mem[self.op_index] == 99 {
-                panic!("Shouldn't be here");
+                break None;
             }
             let next = self.compute_step();
             if next.is_none() {
@@ -556,7 +555,7 @@ pub fn day_11() -> Res<(i64, i64)> {
 }
 
 #[allow(dead_code)]
-pub fn day_13() -> Res<()> {
+pub fn day_13() -> Res<i64> {
     println!("Day 13");
 
     let mem: Vec<i64> = read_better("data/2019/day_13.in", &|s| s.parse::<i64>().unwrap())?
@@ -589,49 +588,53 @@ pub fn day_13() -> Res<()> {
 
     let mut machine = Machine::new(&mem, vec![]);
     machine.mem[0] = 2;
-    // machine.input = vec![0]; //, 1, -1, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1];
-    let mut map: HashMap<(i64, i64), i64> = HashMap::new();
-    let mut count = 0;
-    let mut prev_ball = 0;
+    // let mut map: HashMap<(i64, i64), i64> = HashMap::new();
+    // let mut count = 0;
+    let mut finish = false;
 
     machine.run_to_next_input(None);
     loop {
-        count += 1;
+        // for i in inputs {
+        // count += 1;
         let squares = machine
             .output
             .chunks_exact(3)
             .map(|chunk| (chunk[0], chunk[1], chunk[2]))
             .collect::<Vec<_>>();
-        for &(x, y, ty) in &squares {
-            if x == -1 {
-                dbg!(ty);
-            } else {
-                map.insert((x, y), ty);
-            }
-        }
-        output_map(&map);
-        // machine.output = vec![];
+        // Uncomment for visualisation.
+        // for &(x, y, ty) in &squares {
+        //     if x == -1 {
+        //         // this is the score
+        //         // dbg!(ty);
+        //     } else {
+        //         map.insert((x, y), ty);
+        //     }
+        // }
+        // output_map(&map);
 
         let ball = squares.iter().rev().find(|s| s.2 == 4).unwrap();
         let paddle = squares.iter().rev().find(|s| s.2 == 3).unwrap();
-        let next_ball = match dbg!((prev_ball, ball.0)) {
-            (p, c) if p < c => c + 1,
-            (_, c) => c - 1,
-            // (_, c) => c,
-        };
-        prev_ball = ball.0;
-        let next = match dbg!((next_ball, paddle.0)) {
-            (b, p) if b < p && ball.1 < 21 => -1,
-            (b, p) if b > p && ball.1 < 21 => 1,
+        let score = squares
+            .iter()
+            .rev()
+            .find(|s| s.0 == -1 && s.1 == 0)
+            .unwrap()
+            .2;
+
+        let next = match (ball.0, paddle.0) {
+            (b, p) if b > p => 1,
+            (b, p) if b < p => -1,
             _ => 0,
         };
-        let ten_millis = time::Duration::from_millis(200);
-        thread::sleep(ten_millis);
-        machine.run_to_next_input(Some(dbg!(next)));
-        dbg!("loop", count);
+        // dbg!((count, next, score));
+        if finish {
+            println!("  part 2 {:?}", score);
+            return Ok(score);
+        }
+        if None == machine.run_to_next_input(Some(next)) {
+            finish = true;
+        }
     }
-
-    // Ok(())
 }
 
 #[cfg(test)]
