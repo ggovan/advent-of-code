@@ -20,12 +20,12 @@ impl Aoc2020 for Day07 {
     }
 
     fn part_1(input: &Self::Input) -> Self::Result1 {
-        let mut inverse_map: HashMap<&String, Vec<&String>> = HashMap::new();
-        let mut containing_bags: HashSet<&String> = HashSet::new();
+        let mut inverse_map: HashMap<&str, Vec<&str>> = HashMap::new();
+        let mut containing_bags: HashSet<&str> = HashSet::new();
 
         for Rule { bag, contains } in input {
             for (_, x) in contains {
-                if let Some(vec) = inverse_map.get_mut(x) {
+                if let Some(vec) = inverse_map.get_mut(x.as_str()) {
                     vec.push(bag);
                 } else {
                     inverse_map.insert(x, vec![bag]);
@@ -33,7 +33,7 @@ impl Aoc2020 for Day07 {
             }
         }
 
-        let mut queue: VecDeque<&String> = VecDeque::new();
+        let mut queue: VecDeque<&str> = VecDeque::new();
         let target = "shiny gold".to_owned();
         queue.push_back(&target);
 
@@ -57,7 +57,7 @@ impl Aoc2020 for Day07 {
     }
 
     fn part_2(input: &Self::Input) -> Self::Result2 {
-        let mut map: HashMap<&String, &Rule> = HashMap::new();
+        let mut map: HashMap<&str, &Rule> = HashMap::new();
 
         for r in input {
             map.insert(&r.bag, r);
@@ -68,7 +68,7 @@ impl Aoc2020 for Day07 {
     }
 }
 
-fn bag_contains(map: &HashMap<&String, &Rule>, bag: &String) -> u64 {
+fn bag_contains(map: &HashMap<&str, &Rule>, bag: &str) -> u64 {
     let mut count = 1_u64;
     if let Some(rule) = map.get(bag) {
         for (c, b2) in &rule.contains {

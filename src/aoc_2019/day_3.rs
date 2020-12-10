@@ -74,12 +74,12 @@ impl LineSeg {
         match self.direction {
             Direction::H => {
                 let mut xs = [self.start.0, self.end_point().0];
-                xs.sort();
+                xs.sort_unstable();
                 point.0 >= xs[0] && point.0 <= xs[1] && point.1 == self.start.1
             }
             Direction::V => {
                 let mut ys = [self.start.1, self.end_point().1];
-                ys.sort();
+                ys.sort_unstable();
                 point.1 >= ys[0] && point.1 <= ys[1] && point.0 == self.start.0
             }
         }

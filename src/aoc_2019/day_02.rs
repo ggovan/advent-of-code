@@ -10,7 +10,7 @@ impl Aoc2020 for Day02 {
     type Result2 = i64;
 
     fn day() -> usize {
-        02
+        2
     }
     fn load() -> Res<Self::Input> {
         Machine::load_tape_from_file("data/2019/day_2.in")

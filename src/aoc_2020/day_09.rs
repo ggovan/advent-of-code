@@ -40,11 +40,12 @@ fn has_match(ns: &[i64], preamble: usize) -> i64 {
         thing.push(arr);
     }
 
-    'outer: for i in preamble..ns.len() {
-        for j in (i - preamble)..(i - 1) {
-            let t = thing[j];
-            for k in 0..(i - j - 1) {
-                if ns[i] == t[k] {
+    'outer: for (i, &ni) in ns.iter().enumerate().skip(preamble) {
+        // clippy prefered this line to: `for j in (i - preamble)..(i - 1)`
+        for (j, &tj) in thing.iter().enumerate().take(i - 1).skip(i - preamble) {
+            let t = tj;
+            for &tk in t.iter().take(i - j - 1) {
+                if ni == tk {
                     continue 'outer;
                 }
             }

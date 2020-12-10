@@ -3,6 +3,13 @@ use std::error::Error;
 use std::fs::read_to_string;
 
 type Res<T> = Result<T, Box<dyn Error>>;
+type Pos2D = (/*x*/ i32, /*y*/ i32);
+type RationalVector = (
+    i32, // dx - rationalised
+    i32, // dy - rationalised
+    i32, // magnitude
+    f32, // angle
+);
 
 fn max_asteroids(input: &str) -> (i32, i32, i32) {
     let asteroids = input
@@ -24,7 +31,7 @@ fn max_asteroids(input: &str) -> (i32, i32, i32) {
         .unwrap()
 }
 
-fn asteroid_shooting(input: &str, (x, y): (i32, i32), goal: usize) -> (i32, i32) {
+fn asteroid_shooting(input: &str, (x, y): Pos2D, goal: usize) -> Pos2D {
     let asteroids = input
         .lines()
         .enumerate()
@@ -37,7 +44,7 @@ fn asteroid_shooting(input: &str, (x, y): (i32, i32), goal: usize) -> (i32, i32)
         .collect::<Vec<_>>();
     let aster_ref = &asteroids;
 
-    let mut angles: HashMap<(i32, i32), Vec<(i32, i32, i32, f32)>> = HashMap::new();
+    let mut angles: HashMap<Pos2D, Vec<RationalVector>> = HashMap::new();
 
     for (x2, y2) in aster_ref {
         if *x2 == x && *y2 == y {
@@ -81,7 +88,7 @@ fn asteroid_shooting(input: &str, (x, y): (i32, i32), goal: usize) -> (i32, i32)
     (coord.0, coord.1)
 }
 
-fn count_visible((x, y): (i32, i32), asteroids: &[(i32, i32)]) -> (i32, i32, i32) {
+fn count_visible((x, y): Pos2D, asteroids: &[Pos2D]) -> (i32, i32, i32) {
     let visible = asteroids
         .iter()
         .map(move |(x2, y2)| (x2 - x, y2 - y))
@@ -94,7 +101,7 @@ fn count_visible((x, y): (i32, i32), asteroids: &[(i32, i32)]) -> (i32, i32, i32
     (x, y, visible.len() as i32)
 }
 
-fn rationalize(coord: (i32, i32)) -> (i32, i32, i32, f32) {
+fn rationalize(coord: Pos2D) -> RationalVector {
     match coord {
         (x, 0) if x > 0 => (1, 0, x, 90.0),
         (x, 0) if x < 0 => (-1, 0, x.abs(), 270.0),
@@ -119,7 +126,7 @@ fn gcf(a: i32, b: i32) -> i32 {
     }
 }
 
-pub fn day_10() -> Res<((i32, i32, i32), (i32, i32))> {
+pub fn day_10() -> Res<((i32, i32, i32), Pos2D)> {
     let day_10_in: String = read_to_string("data/2019/day_10.in")?;
     println!("Day 10");
     let res_1 = max_asteroids(&day_10_in);

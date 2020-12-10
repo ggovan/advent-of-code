@@ -35,7 +35,7 @@ impl Iterator for Permutations {
             let next_arr = Permutations::val_to_arr(self.current);
             self.current += 1;
             let mut sorted = next_arr;
-            sorted.sort();
+            sorted.sort_unstable();
             if sorted == self.base {
                 break Some(next_arr);
             }
@@ -83,7 +83,7 @@ impl Machine {
     }
 
     fn ck_inst(&self, val: i64) -> usize {
-        if (0 <= val && val <= 9) || val == 99 {
+        if (0..=9).contains(&val) || val == 99 {
             val as usize
         } else {
             panic!("Invalid instruction {}!\n{:?}", val, self)

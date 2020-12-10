@@ -1,5 +1,5 @@
-mod day_02;
-mod day_1;
+pub mod day_02;
+pub mod day_1;
 pub mod day_10;
 mod day_12;
 pub mod day_14;
@@ -12,21 +12,25 @@ use std::collections::HashMap;
 pub fn main(day: Option<usize>) -> Res<()> {
     println!("Advent of code!!!");
 
-    day_1::Day01::run_me_maybe(None)?;
-    day_02::Day02::run_me_maybe(None)?;
+    day_1::Day01::run_me_maybe(day)?;
+    day_02::Day02::run_me_maybe(day)?;
 
-    day_3::day_3()?;
-    day_4();
-    intcode::day_5()?;
-    day_6()?;
-    intcode::day_7()?;
-    day_8()?;
-    intcode::day_9()?;
-    day_10::day_10()?;
-    intcode::day_11()?;
-    day_12::day_12()?;
-    intcode::day_13()?;
+    if day.is_none() {
+        day_3::day_3()?;
+        day_4();
+        intcode::day_5()?;
+        day_6()?;
+        intcode::day_7()?;
+        day_8()?;
+        intcode::day_9()?;
+        day_10::day_10()?;
+        intcode::day_11()?;
+        day_12::day_12()?;
+        intcode::day_13()?;
+    }
+
     day_14::Day14::run_me_maybe(day)?;
+
     Ok(())
 }
 
@@ -95,7 +99,7 @@ fn all_digits_incrementing(test: usize) -> bool {
     d1 <= d2 && d2 <= d3 && d3 <= d4 && d4 <= d5 && d5 <= d6
 }
 
-type Graph<'a> = HashMap<&'a String, Vec<&'a String>>;
+type Graph<'a> = HashMap<&'a str, Vec<&'a str>>;
 
 fn day_6() -> Res<()> {
     let input = read_lines("data/2019/day_6.in")?
@@ -112,10 +116,13 @@ fn day_6() -> Res<()> {
     let mut node_map: Graph = HashMap::new();
 
     for (a, b) in &input {
-        let new_val = node_map.remove(a).map_or(vec![b], move |mut v| {
-            v.push(b);
-            v
-        });
+        let new_val: Vec<&str> =
+            node_map
+                .remove(&a.as_ref())
+                .map_or(vec![&b.as_ref()], move |mut v| {
+                    v.push(b);
+                    v
+                });
         node_map.insert(a, new_val);
     }
 
@@ -125,7 +132,7 @@ fn day_6() -> Res<()> {
     Ok(())
 }
 
-fn count_orbits(graph: &Graph, node: &String, depth: usize) -> usize {
+fn count_orbits(graph: &Graph, node: &str, depth: usize) -> usize {
     let empty_vec = vec![];
     graph
         .get(node)
@@ -136,10 +143,10 @@ fn count_orbits(graph: &Graph, node: &String, depth: usize) -> usize {
         + depth
 }
 
-fn shift_orbits(graph: &Graph, node: &String) -> OrbitDiff {
+fn shift_orbits(graph: &Graph, node: &str) -> OrbitDiff {
     use OrbitDiff::*;
     let empty_vec = vec![];
-    match node.as_ref() {
+    match node {
         "SAN" => San(0),
         "YOU" => You(0),
         _ => {

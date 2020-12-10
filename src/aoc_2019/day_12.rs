@@ -42,9 +42,9 @@ fn sim_step(input: &mut Vec<Asteroid>) {
         .collect::<Vec<_>>();
 
     for i in 0..input.len() {
-        input[i].pos.0 = input[i].pos.0 + new_velocities[i].0;
-        input[i].pos.1 = input[i].pos.1 + new_velocities[i].1;
-        input[i].pos.2 = input[i].pos.2 + new_velocities[i].2;
+        input[i].pos.0 += new_velocities[i].0;
+        input[i].pos.1 += new_velocities[i].1;
+        input[i].pos.2 += new_velocities[i].2;
         input[i].vel = new_velocities[i];
     }
 }
@@ -57,7 +57,7 @@ fn vel_diff(a: i32, b: i32) -> (i32, i32) {
     }
 }
 
-fn calc_energy(sys: &Vec<Asteroid>) -> i32 {
+fn calc_energy(sys: &[Asteroid]) -> i32 {
     sys.iter()
         .map(|a| {
             (a.pos.0.abs() + a.pos.1.abs() + a.pos.2.abs())
@@ -66,7 +66,7 @@ fn calc_energy(sys: &Vec<Asteroid>) -> i32 {
         .sum()
 }
 
-fn until_stable(starting: &Vec<Asteroid>) -> i64 {
+fn until_stable(starting: &[Asteroid]) -> i64 {
     let mut stable_x: Option<i64> = None;
     let mut stable_y: Option<i64> = None;
     let mut stable_z: Option<i64> = None;
@@ -84,42 +84,39 @@ fn until_stable(starting: &Vec<Asteroid>) -> i64 {
         .map(|a| (a.pos.2, a.vel.2))
         .collect::<Vec<_>>();
 
-    let mut sys = starting.clone();
+    let mut sys = starting.to_owned();
     let mut i = 0;
 
     loop {
         sim_step(&mut sys);
         i += 1;
 
-        if stable_x.is_none() {
-            if sys
+        if stable_x.is_none()
+            && sys
                 .iter()
                 .map(|a| (a.pos.0, a.vel.0))
                 .enumerate()
                 .all(|(i, e)| e == start_x[i])
-            {
-                stable_x = Some(i);
-            }
+        {
+            stable_x = Some(i);
         }
-        if stable_y.is_none() {
-            if sys
+        if stable_y.is_none()
+            && sys
                 .iter()
                 .map(|a| (a.pos.1, a.vel.1))
                 .enumerate()
                 .all(|(i, e)| e == start_y[i])
-            {
-                stable_y = Some(i);
-            }
+        {
+            stable_y = Some(i);
         }
-        if stable_z.is_none() {
-            if sys
+        if stable_z.is_none()
+            && sys
                 .iter()
                 .map(|a| (a.pos.2, a.vel.2))
                 .enumerate()
                 .all(|(i, e)| e == start_z[i])
-            {
-                stable_z = Some(i);
-            }
+        {
+            stable_z = Some(i);
         }
 
         if stable_x.is_some() && stable_y.is_some() && stable_z.is_some() {

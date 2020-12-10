@@ -18,7 +18,7 @@ impl Aoc2020 for Day14 {
 
     fn load() -> Res<Self::Input> {
         Ok(read_lines("data/2019/day_14.in")?
-            .map(|l| parse_rule(&l.unwrap()).unwrap())
+            .map(|l| parse_rule(&l.unwrap()))
             .collect())
     }
 
@@ -26,7 +26,7 @@ impl Aoc2020 for Day14 {
         let ore = "ORE".to_string();
         let ore_rule = (vec![], (ore.clone(), 1));
         let fuel = "FUEL".to_string();
-        let mut map: HashMap<&String, &Rule> = HashMap::new();
+        let mut map: HashMap<&str, &Rule> = HashMap::new();
         for rule in rules {
             map.insert(&rule.1 .0, rule);
         }
@@ -36,7 +36,7 @@ impl Aoc2020 for Day14 {
         let mut ordered = topo_order(&map, &fuel);
         ordered.push(&ore);
 
-        let mut need_map: HashMap<&String, u64> = HashMap::new();
+        let mut need_map: HashMap<&str, u64> = HashMap::new();
         for o in &ordered {
             need_map.insert(o, 0);
         }
@@ -49,11 +49,11 @@ impl Aoc2020 for Day14 {
             let reactions = (need / count) + if need % count != 0 { 1_u64 } else { 0 };
 
             for (c, n) in inputs {
-                need_map.insert(c, need_map[c] + n * reactions);
+                need_map.insert(c, need_map[&c.as_ref()] + n * reactions);
             }
         }
 
-        need_map[&ore]
+        need_map[&ore.as_ref()]
     }
 
     fn part_2(rules: &Self::Input) -> Self::Result2 {
@@ -61,13 +61,13 @@ impl Aoc2020 for Day14 {
         let ore_rule = (vec![], (ore.clone(), 1));
         let ore_count = 1_000_000_000_000;
         let fuel = "FUEL".to_string();
-        let mut map: HashMap<&String, &Rule> = HashMap::new();
+        let mut map: HashMap<&str, &Rule> = HashMap::new();
         for rule in rules {
             map.insert(&rule.1 .0, rule);
         }
         map.insert(&ore, &ore_rule);
 
-        let mut bank: HashMap<&String, u64> = HashMap::new();
+        let mut bank: HashMap<&str, u64> = HashMap::new();
         for rule in rules {
             bank.insert(&rule.1 .0, 0);
         }
@@ -80,16 +80,16 @@ impl Aoc2020 for Day14 {
         {
             // Heuristically pick some more fuel to use from the current fuel rate.
             // The fuel rate can't go down from here, right?
-            let used_ore = ore_count - bank[&ore];
+            let used_ore = ore_count - bank[&ore.as_ref()];
             let ore_per_fuel = used_ore as f64 / count as f64;
-            let get_more = (bank[&ore] as f64 / ore_per_fuel).floor() as u64;
+            let get_more = (bank[&ore.as_ref()] as f64 / ore_per_fuel).floor() as u64;
             count += get_more;
             can_create(&map, &mut bank, &fuel, get_more);
         }
 
         while can_create(&map, &mut bank, &fuel, 1) {
             count += 1;
-            println!("ORE: {}, FUEL: {}", bank[&ore], &count);
+            println!("ORE: {}, FUEL: {}", bank[&ore.as_ref()], &count);
         }
 
         // dbg!(&bank);
@@ -98,10 +98,10 @@ impl Aoc2020 for Day14 {
     }
 }
 
-fn can_create<'a>(
-    map: &HashMap<&String, &Rule>,
-    bank: &mut HashMap<&String, u64>,
-    chem: &String,
+fn can_create(
+    map: &HashMap<&str, &Rule>,
+    bank: &mut HashMap<&str, u64>,
+    chem: &str,
     amount: u64,
 ) -> bool {
     let banked = bank[chem];
@@ -126,14 +126,14 @@ fn can_create<'a>(
         .all(|(c, a)| can_create(map, bank, c, reactions * a))
 }
 
-fn topo_order<'a>(map: &HashMap<&String, &'a Rule>, chem: &'a String) -> Vec<&'a String> {
+fn topo_order<'a>(map: &HashMap<&str, &'a Rule>, chem: &'a str) -> Vec<&'a str> {
     if chem == "ORE" {
         return vec![];
     }
 
     let (inputs, _) = map[chem];
 
-    let mut ordered: Vec<&String> =
+    let mut ordered: Vec<&str> =
         inputs
             .iter()
             .map(|(c, _)| topo_order(map, c))
@@ -150,7 +150,7 @@ fn topo_order<'a>(map: &HashMap<&String, &'a Rule>, chem: &'a String) -> Vec<&'a
     ordered
 }
 
-fn parse_rule(s: &str) -> Res<Rule> {
+fn parse_rule(s: &str) -> Rule {
     let (ins, out) = s.split_once(" => ").unwrap();
     let inputs = ins
         .split(", ")
@@ -163,7 +163,7 @@ fn parse_rule(s: &str) -> Res<Rule> {
         let (cx, cn) = out.split_once(' ').unwrap();
         (cn.to_string(), cx.parse::<u64>().unwrap())
     };
-    Ok((inputs, output))
+    (inputs, output)
 }
 
 #[cfg(test)]
@@ -172,7 +172,7 @@ mod tests {
 
     #[test]
     fn test_parse_rule() {
-        let res = parse_rule("1 MZWV, 17 XDBXC, 3 XCVML => 2 XMNCP").unwrap();
+        let res = parse_rule("1 MZWV, 17 XDBXC, 3 XCVML => 2 XMNCP");
         assert_eq!(
             res,
             (
@@ -195,7 +195,7 @@ mod tests {
                      7 A, 1 D => 1 E\n\
                      7 A, 1 E => 1 FUEL"
             .lines()
-            .map(|l| parse_rule(l).unwrap())
+            .map(|l| parse_rule(l))
             .collect::<Vec<_>>();
         let res = Day14::part_1(&input);
         assert_eq!(res, 31);
@@ -211,7 +211,7 @@ mod tests {
                      4 C, 1 A => 1 CA\n\
                      2 AB, 3 BC, 4 CA => 1 FUEL"
             .lines()
-            .map(|l| parse_rule(l).unwrap())
+            .map(|l| parse_rule(l))
             .collect::<Vec<_>>();
         let res = Day14::part_1(&input);
         assert_eq!(res, 165);
@@ -237,7 +237,7 @@ mod tests {
                      7 XCVML => 6 RJRHP\n\
                      5 BHXH, 4 VRPVC => 5 LTCX"
             .lines()
-            .map(|l| parse_rule(l).unwrap())
+            .map(|l| parse_rule(l))
             .collect::<Vec<_>>();
         let res = Day14::part_1(&input);
         assert_eq!(res, 2210736);
@@ -263,7 +263,7 @@ mod tests {
                      7 XCVML => 6 RJRHP\n\
                      5 BHXH, 4 VRPVC => 5 LTCX"
             .lines()
-            .map(|l| parse_rule(l).unwrap())
+            .map(|l| parse_rule(l))
             .collect::<Vec<_>>();
         let res = Day14::part_2(&input);
         assert_eq!(res, 460664);
