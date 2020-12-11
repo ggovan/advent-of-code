@@ -413,8 +413,14 @@ impl Direction {
     }
 }
 
-trait MapFmt {
+pub trait MapFmt {
     fn out(&self) -> char;
+}
+
+impl MapFmt for char {
+    fn out(&self) -> char {
+        *self
+    }
 }
 
 impl MapFmt for bool {
@@ -441,7 +447,7 @@ impl MapFmt for i64 {
     }
 }
 
-fn output_map<T: MapFmt>(map: &HashMap<(i64, i64), T>) {
+pub fn output_map<T: MapFmt>(map: &HashMap<(i64, i64), T>) {
     let (x_min, x_max, y_min, y_max) = (
         map.keys().min_by_key(|x| x.0).unwrap().0,
         map.keys().max_by_key(|x| x.0).unwrap().0,

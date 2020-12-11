@@ -39,7 +39,7 @@
 			"        $1",
 			"    }",
 			"",
-			"    fn part_2(_input: &Vec<Self::Result2>) -> Self::Result2 {",
+			"    fn part_2(_input: &Self::Input) -> Self::Result2 {",
 			"        $1",
 			"    }",
 			"}"
