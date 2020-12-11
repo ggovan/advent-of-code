@@ -16,6 +16,8 @@ mod day_09;
 pub use day_09::Day09;
 mod day_10;
 pub use day_10::Day10;
+mod day_11;
+pub use day_11::Day11;
 mod day_1;
 pub use day_1::Day01;
 
@@ -33,6 +35,7 @@ pub fn run_all(day: Option<usize>) -> Res<()> {
     Day08::run_me_maybe(day)?;
     Day09::run_me_maybe(day)?;
     Day10::run_me_maybe(day)?;
+    Day11::run_me_maybe(day)?;
 
     Ok(())
 }
