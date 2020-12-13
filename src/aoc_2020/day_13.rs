@@ -25,6 +25,7 @@ impl Aoc2020 for Day13 {
         Ok((time, busses))
     }
 
+    /// Simply iterate over the list of busses and pick the one that happens soonest after the start time.
     fn part_1((time, busses): &Self::Input) -> Self::Result1 {
         let (bus, wait) = busses
             .iter()
@@ -39,6 +40,11 @@ impl Aoc2020 for Day13 {
         bus * wait
     }
 
+    /// Fold over all the busses, and at each step find an `offset` and `period` that can be used to find occurrences for the matching pattern.
+    /// i.e. for timetable 7,13:
+    ///   for 7 the offset is 0 (the pattern starts from position 0), and the period is 7 (when this bus next departs)
+    ///   for 13 the offset is 77 (the first time we see a pattern that we accept) and the period is 91 (the number of steps until it appears again).
+    /// By always jumping by the period, we quickly find a start value which produces a valid pattern.
     fn part_2((_, busses): &Self::Input) -> Self::Result2 {
         busses
             .iter()

@@ -19,6 +19,7 @@ impl Aoc2020 for Day12 {
             .collect())
     }
 
+    /// Move the ship around, nothing fancy here.
     fn part_1(input: &Self::Input) -> Self::Result1 {
         let mut dir = Direction::Right;
         let mut pos = (0, 0);
@@ -42,13 +43,12 @@ impl Aoc2020 for Day12 {
                 'L' => dir = dir.rotate_acw(amount / 90),
                 c => unreachable!("WHAT! {}", c),
             }
-
-            // println!("{} {}, {:?} {:?}", command, amount, dir, pos);
         }
 
         pos.0.abs() + pos.1.abs()
     }
 
+    /// Move the ship around, with some fun rotation of the waypoint.
     fn part_2(input: &Self::Input) -> Self::Result2 {
         let mut pos = (0, 0);
         let mut way = (10, -1);

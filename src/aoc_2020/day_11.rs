@@ -20,6 +20,7 @@ impl Aoc2020 for Day11 {
         Ok((input, width, height))
     }
 
+    /// Model the input as cellular automata and run it until it is stable and count the number of seats.
     fn part_1((input, width, height): &Self::Input) -> Self::Result1 {
         let mut ca = input.clone();
         loop {
@@ -33,6 +34,7 @@ impl Aoc2020 for Day11 {
         }
     }
 
+    /// As part 1, but using a "sight" based neighbourhood.
     fn part_2((input, width, height): &Self::Input) -> Self::Result2 {
         let mut ca = input.clone();
         loop {

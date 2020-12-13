@@ -151,6 +151,8 @@ impl Aoc2020 for Day15 {
         intcode::Machine::load_tape_from_file("data/2019/day_15.in")
     }
 
+    /// Do two maze explorations (one left and one right, to ensure that it's fully explored),
+    /// and then search (A*) through the open spaces to find the shortest path.
     fn part_1(input: &Self::Input) -> Self::Result1 {
         // Go both directions to fully explore the maze
         let map = MazeSim::new(input, None).explore_maze(false).map;
@@ -165,6 +167,8 @@ impl Aoc2020 for Day15 {
         search(&map, (0, 0), goal)
     }
 
+    /// Do two maze explorations (one left and one right, to ensure that it's fully explored),
+    /// and then do a breadth first search to find the "depth" of the "tree".
     fn part_2(input: &Self::Input) -> Self::Result2 {
         // Go both directions to fully explore the maze
         let map = MazeSim::new(input, None).explore_maze(false).map;
