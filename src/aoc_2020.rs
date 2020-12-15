@@ -24,13 +24,17 @@ mod day_13;
 pub use day_13::Day13;
 mod day_14;
 pub use day_14::Day14;
+mod day_15;
+pub use day_15::Day15;
 mod day_1;
 pub use day_1::Day01;
 
 use crate::files::Res;
 use std::fmt::Display;
+use std::time::Instant;
 
 pub fn run_all(day: Option<usize>) -> Res<()> {
+    let start = Instant::now();
     Day01::run_me_maybe(day)?;
     Day02::run_me_maybe(day)?;
     Day03::run_me_maybe(day)?;
@@ -45,6 +49,9 @@ pub fn run_all(day: Option<usize>) -> Res<()> {
     Day12::run_me_maybe(day)?;
     Day13::run_me_maybe(day)?;
     Day14::run_me_maybe(day)?;
+    Day15::run_me_maybe(day)?;
+
+    println!("Total time: {:?}", Instant::now() - start);
 
     Ok(())
 }
@@ -62,10 +69,20 @@ pub trait Aoc2020 {
     fn run() -> Res<()> {
         println!("Day {}", Self::day());
 
+        let start = Instant::now();
         let input = Self::load()?;
+        let time_input = Instant::now();
 
-        println!("  part 1: {}", Self::part_1(&input));
-        println!("  part 2: {}", Self::part_2(&input));
+        let res_1 = Self::part_1(&input);
+        let time_1 = Instant::now();
+
+        let res_2 = Self::part_2(&input);
+        let time_2 = Instant::now();
+
+        println!("  input loaded in {:?}", time_input - start);
+        println!("  part 1: {} in {:?}", res_1, time_1 - time_input);
+        println!("  part 2: {} in {:?}", res_2, time_2 - time_1);
+        println!();
 
         Ok(())
     }

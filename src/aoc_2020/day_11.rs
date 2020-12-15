@@ -54,8 +54,8 @@ impl Aoc2020 for Day11 {
 }
 
 fn run_step_vec(
-    ca: &Vec<char>,
-    new: &mut Vec<char>,
+    ca: &[char],
+    new: &mut [char],
     width: usize,
     height: usize,
     crowd: usize,
@@ -64,16 +64,16 @@ fn run_step_vec(
     for (i, c) in ca.iter().enumerate() {
         new[i] = match c {
             '#' => {
-                let neighbours = get_neighbours_vec(ca, i, width, height, sight);
-                if neighbours.iter().filter(|&n| *n == '#').count() >= crowd {
+                let occupied_neighbours = get_occupied_neighbours_vec(ca, i, width, height, sight);
+                if occupied_neighbours >= crowd {
                     'L'
                 } else {
                     '#'
                 }
             }
             'L' => {
-                let neighbours = get_neighbours_vec(ca, i, width, height, sight);
-                if neighbours.iter().filter(|&n| *n == '#').count() == 0 {
+                let occupied_neighbours = get_occupied_neighbours_vec(ca, i, width, height, sight);
+                if occupied_neighbours == 0 {
                     '#'
                 } else {
                     'L'
@@ -87,9 +87,11 @@ fn run_step_vec(
 }
 
 /// an empty string means off-grid
-fn get(ca: &Vec<char>, column: i32, row: i32, width: usize, height: usize) -> char {
-    if (0..width as i32).contains(&column) && (0..height as i32).contains(&row) {
-        ca[(column as usize + width * row as usize) as usize]
+fn get(ca: &[char], column: i32, row: i32, width: i32, height: i32) -> char {
+    // faster without this!
+    // if (0..width as i32).contains(&column) && (0..height as i32).contains(&row) {
+    if column >= 0 && row >= 0 && column < width && row < height {
+        ca[(column + width * row) as usize]
     } else {
         ' '
     }
@@ -97,13 +99,13 @@ fn get(ca: &Vec<char>, column: i32, row: i32, width: usize, height: usize) -> ch
 
 /// get the first non-empty cell value along the vector (checking the point first)
 fn get_vec(
-    ca: &Vec<char>,
+    ca: &[char],
     column: i32,
     row: i32,
     c_vec: i32,
     r_vec: i32,
-    width: usize,
-    height: usize,
+    width: i32,
+    height: i32,
     sight: bool,
 ) -> char {
     let cn = column + c_vec;
@@ -116,19 +118,17 @@ fn get_vec(
     }
 }
 
-fn get_neighbours_vec(
-    ca: &Vec<char>,
+fn get_occupied_neighbours_vec(
+    ca: &[char],
     i: usize,
     width: usize,
     height: usize,
     sight: bool,
-) -> [char; 8] {
+) -> usize {
     let row = (i / width) as i32;
-    let col = (i % width) as i32;
+    let col = i as i32 - (width as i32 * row);
 
-    let mut res = [' '; 8];
-
-    for (i, &(r, c)) in [
+    [
         (-1, -1),
         (-1, 0),
         (-1, 1),
@@ -139,12 +139,8 @@ fn get_neighbours_vec(
         (1, 1),
     ]
     .iter()
-    .enumerate()
-    {
-        res[i] = get_vec(ca, col, row, c, r, width, height, sight);
-    }
-
-    res
+    .filter(|(r, c)| '#' == get_vec(ca, col, row, *c, *r, width as i32, height as i32, sight))
+    .count()
 }
 
 #[cfg(test)]

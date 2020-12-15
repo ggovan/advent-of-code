@@ -29,16 +29,16 @@ impl Aoc2020 for Day14 {
 
         for i in input {
             match i {
-                &Mask {
+                Mask {
                     val_trues,
                     val_falses,
                     ..
                 } => {
-                    trues = val_trues;
-                    falses = val_falses;
+                    trues = *val_trues;
+                    falses = *val_falses;
                 }
-                &SetMem(addr, val) => {
-                    mem.insert(addr, (val | trues) & falses);
+                SetMem(addr, val) => {
+                    mem.insert(*addr, (val | trues) & falses);
                 }
             }
         }
@@ -48,28 +48,24 @@ impl Aoc2020 for Day14 {
 
     fn part_2(input: &Self::Input) -> Self::Result2 {
         let mut trues: u64 = 0;
-        let mut falses: u64 = 0;
         let mut floating = 0;
         let mut mem: HashMap<u64, u64> = HashMap::new();
 
         for i in input {
             match i {
-                &Mask {
+                Mask {
                     val_trues,
-                    val_falses,
-                    mem_unchanged,
-                    mem_trues,
                     mem_floating,
+                    ..
                 } => {
-                    trues = val_trues;
-                    falses = val_falses;
-                    floating = mem_floating;
+                    trues = *val_trues;
+                    floating = *mem_floating;
                 }
-                &SetMem(addr, val) => {
+                SetMem(addr, val) => {
                     // mem.insert(addr, (val | trues) & falses);
                     // let value = (val | trues) & falses;
                     let addr = addr | trues;
-                    set_floating_mem(&mut mem, val, addr, floating)
+                    set_floating_mem(&mut mem, *val, addr, floating)
                 }
             }
         }
@@ -99,10 +95,8 @@ pub enum Instruction {
     Mask {
         val_trues: u64,
         val_falses: u64,
-        mem_unchanged: u64, // unused
-        mem_trues: u64,
         mem_floating: u64,
-    }, // always true, always false
+    },
     SetMem(u64, u64), // location, value
 }
 
@@ -121,8 +115,6 @@ impl Instruction {
                 Instruction::Mask {
                     val_trues: trues,
                     val_falses: falses,
-                    mem_unchanged: 0xf_ffff_ffff,
-                    mem_trues: trues,
                     mem_floating: floating,
                 }
             }
@@ -137,7 +129,6 @@ impl Instruction {
 
 #[cfg(test)]
 mod tests {
-    use super::Instruction::*;
     use super::*;
 
     #[test]
@@ -147,8 +138,6 @@ mod tests {
             Mask {
                 val_trues: 0,
                 val_falses: 0xf_ffff_ffff,
-                mem_unchanged: 0xf_ffff_ffff,
-                mem_trues: 0,
                 mem_floating: 0xf_ffff_ffff
             }
         );
@@ -157,8 +146,6 @@ mod tests {
             Mask {
                 val_trues: 64,
                 val_falses: 0xf_ffff_fffd,
-                mem_unchanged: 0xf_ffff_ffff,
-                mem_trues: 64,
                 mem_floating: 0xf_ffff_ffbd
             }
         );

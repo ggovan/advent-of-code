@@ -75,10 +75,10 @@ struct MazeSim {
 }
 
 impl MazeSim {
-    fn new(input: &Vec<i64>, map: Option<Map>) -> Self {
+    fn new(input: &[i64], map: Option<Map>) -> Self {
         MazeSim {
             machine: intcode::Machine::new(input, vec![]),
-            map: map.unwrap_or(HashMap::new()),
+            map: map.unwrap_or_default(),
             pos: (0, 0),
         }
     }
