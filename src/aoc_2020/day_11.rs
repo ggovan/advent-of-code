@@ -1,6 +1,6 @@
 use crate::aoc_2020::Aoc2020;
 use crate::files::Res;
-use std::fs::read_to_string;
+use std::{fs::read_to_string, mem::swap};
 
 pub struct Day11;
 
@@ -22,48 +22,57 @@ impl Aoc2020 for Day11 {
 
     /// Model the input as cellular automata and run it until it is stable and count the number of seats.
     fn part_1((input, width, height): &Self::Input) -> Self::Result1 {
+        // double buffer, to cut down on allocation and freeing
         let mut ca = input.clone();
+        let mut cb = input.clone();
         loop {
-            let next = run_step(&ca, *width, *height);
+            run_step_vec(&ca, &mut cb, *width, *height, 4, false);
 
-            if ca == next {
-                return next.iter().filter(|&c| *c == '#').count();
+            if ca == cb {
+                return cb.iter().filter(|&c| *c == '#').count();
             } else {
-                ca = next
+                swap(&mut ca, &mut cb);
             }
         }
     }
 
     /// As part 1, but using a "sight" based neighbourhood.
     fn part_2((input, width, height): &Self::Input) -> Self::Result2 {
+        // double buffer, to cut down on allocation and freeing
         let mut ca = input.clone();
+        let mut cb = input.clone();
         loop {
-            let next = run_step_vec(&ca, *width, *height);
+            run_step_vec(&ca, &mut cb, *width, *height, 5, true);
 
-            if ca == next {
-                return next.iter().filter(|&c| *c == '#').count();
+            if ca == cb {
+                return cb.iter().filter(|&c| *c == '#').count();
             } else {
-                ca = next
+                swap(&mut ca, &mut cb);
             }
         }
     }
 }
 
-fn run_step(ca: &Vec<char>, width: usize, height: usize) -> Vec<char> {
-    let mut new = ca.clone();
-
+fn run_step_vec(
+    ca: &Vec<char>,
+    new: &mut Vec<char>,
+    width: usize,
+    height: usize,
+    crowd: usize,
+    sight: bool,
+) {
     for (i, c) in ca.iter().enumerate() {
         new[i] = match c {
             '#' => {
-                let neighbours = get_neighbours(ca, i, width, height);
-                if neighbours.iter().filter(|&n| *n == '#').count() >= 4 {
+                let neighbours = get_neighbours_vec(ca, i, width, height, sight);
+                if neighbours.iter().filter(|&n| *n == '#').count() >= crowd {
                     'L'
                 } else {
                     '#'
                 }
             }
             'L' => {
-                let neighbours = get_neighbours(ca, i, width, height);
+                let neighbours = get_neighbours_vec(ca, i, width, height, sight);
                 if neighbours.iter().filter(|&n| *n == '#').count() == 0 {
                     '#'
                 } else {
@@ -74,35 +83,7 @@ fn run_step(ca: &Vec<char>, width: usize, height: usize) -> Vec<char> {
         }
     }
 
-    new
-}
-
-fn run_step_vec(ca: &Vec<char>, width: usize, height: usize) -> Vec<char> {
-    let mut new = ca.clone();
-
-    for (i, c) in ca.iter().enumerate() {
-        new[i] = match c {
-            '#' => {
-                let neighbours = get_neighbours_vec(ca, i, width, height);
-                if neighbours.iter().filter(|&n| *n == '#').count() >= 5 {
-                    'L'
-                } else {
-                    '#'
-                }
-            }
-            'L' => {
-                let neighbours = get_neighbours_vec(ca, i, width, height);
-                if neighbours.iter().filter(|&n| *n == '#').count() == 0 {
-                    '#'
-                } else {
-                    'L'
-                }
-            }
-            c => *c,
-        }
-    }
-
-    new
+    // new
 }
 
 /// an empty string means off-grid
@@ -123,45 +104,47 @@ fn get_vec(
     r_vec: i32,
     width: usize,
     height: usize,
+    sight: bool,
 ) -> char {
-    let hit = get(ca, column, row, width, height);
-    if hit == '.' {
-        get_vec(ca, column + c_vec, row + r_vec, c_vec, r_vec, width, height)
+    let cn = column + c_vec;
+    let rn = row + r_vec;
+    let hit = get(ca, cn, rn, width, height);
+    if hit == '.' && sight {
+        get_vec(ca, cn, rn, c_vec, r_vec, width, height, sight)
     } else {
         hit
     }
 }
 
-fn get_neighbours(ca: &Vec<char>, i: usize, width: usize, height: usize) -> [char; 8] {
+fn get_neighbours_vec(
+    ca: &Vec<char>,
+    i: usize,
+    width: usize,
+    height: usize,
+    sight: bool,
+) -> [char; 8] {
     let row = (i / width) as i32;
     let col = (i % width) as i32;
 
-    [
-        get(ca, col - 1, row - 1, width, height),
-        get(ca, col - 1, row, width, height),
-        get(ca, col - 1, row + 1, width, height),
-        get(ca, col, row - 1, width, height),
-        get(ca, col, row + 1, width, height),
-        get(ca, col + 1, row - 1, width, height),
-        get(ca, col + 1, row, width, height),
-        get(ca, col + 1, row + 1, width, height),
-    ]
-}
+    let mut res = [' '; 8];
 
-fn get_neighbours_vec(ca: &Vec<char>, i: usize, width: usize, height: usize) -> [char; 8] {
-    let row = (i / width) as i32;
-    let col = (i % width) as i32;
-
-    [
-        get_vec(ca, col - 1, row - 1, -1, -1, width, height),
-        get_vec(ca, col - 1, row, -1, 0, width, height),
-        get_vec(ca, col - 1, row + 1, -1, 1, width, height),
-        get_vec(ca, col, row - 1, 0, -1, width, height),
-        get_vec(ca, col, row + 1, 0, 1, width, height),
-        get_vec(ca, col + 1, row - 1, 1, -1, width, height),
-        get_vec(ca, col + 1, row, 1, 0, width, height),
-        get_vec(ca, col + 1, row + 1, 1, 1, width, height),
+    for (i, &(r, c)) in [
+        (-1, -1),
+        (-1, 0),
+        (-1, 1),
+        (0, -1),
+        (0, 1),
+        (1, -1),
+        (1, 0),
+        (1, 1),
     ]
+    .iter()
+    .enumerate()
+    {
+        res[i] = get_vec(ca, col, row, c, r, width, height, sight);
+    }
+
+    res
 }
 
 #[cfg(test)]

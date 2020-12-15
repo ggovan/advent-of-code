@@ -25,7 +25,7 @@
 			"pub struct Day$1;",
 			"",
 			"impl Aoc2020 for Day$1 {",
-			"    type Input = Vec<$2>;",
+			"    type Input = $2;",
 			"    type Result1 = $3;",
 			"    type Result2 = $4;",
 			"    ",

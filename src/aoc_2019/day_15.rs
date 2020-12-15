@@ -217,6 +217,7 @@ impl PartialOrd for HeapElem {
 /// Uses A* to find the min distance to the goal.
 /// Turns out that that doesn't matter, as I got the same answer when using a max instead of min heap.
 /// It might make it more efficient, but no point since the maze is much slower.
+/// BFS would have been sufficient, but I will keep this for prosperity.
 fn search(map: &Map, start: Point, goal: Point) -> i64 {
     let mut queue: BinaryHeap<HeapElem> = BinaryHeap::new();
     let mut visited: HashSet<Point> = HashSet::new();
