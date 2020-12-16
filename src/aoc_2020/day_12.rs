@@ -5,9 +5,9 @@ use std::fs::read_to_string;
 pub struct Day12;
 
 impl Aoc2020 for Day12 {
-    type Input = Vec<String>;
-    type Result1 = i64;
-    type Result2 = i64;
+    type Input = Vec<Action>;
+    type Result1 = i32;
+    type Result2 = i32;
 
     fn day() -> usize {
         12
@@ -15,7 +15,7 @@ impl Aoc2020 for Day12 {
     fn load() -> Res<Self::Input> {
         Ok(read_to_string("data/2020/day_12.in")?
             .lines()
-            .map(|l| l.to_owned())
+            .map(Action::from)
             .collect())
     }
 
@@ -24,24 +24,15 @@ impl Aoc2020 for Day12 {
         let mut dir = Direction::Right;
         let mut pos = (0, 0);
 
-        for i in input {
-            let command = i.chars().next().unwrap();
-            let amount = i
-                .chars()
-                .skip(1)
-                .collect::<String>()
-                .parse::<i64>()
-                .unwrap();
-
+        for &command in input {
             match command {
-                'N' => pos = Direction::Up.move_along(pos, amount),
-                'S' => pos = Direction::Down.move_along(pos, amount),
-                'W' => pos = Direction::Left.move_along(pos, amount),
-                'E' => pos = Direction::Right.move_along(pos, amount),
-                'F' => pos = dir.move_along(pos, amount),
-                'R' => dir = dir.rotate_cw(amount / 90),
-                'L' => dir = dir.rotate_acw(amount / 90),
-                c => unreachable!("WHAT! {}", c),
+                N(amount) => pos = Direction::Up.move_along(pos, amount),
+                S(amount) => pos = Direction::Down.move_along(pos, amount),
+                W(amount) => pos = Direction::Left.move_along(pos, amount),
+                E(amount) => pos = Direction::Right.move_along(pos, amount),
+                F(amount) => pos = dir.move_along(pos, amount),
+                R(amount) => dir = dir.rotate_cw(amount),
+                L(amount) => dir = dir.rotate_acw(amount),
             }
         }
 
@@ -53,24 +44,15 @@ impl Aoc2020 for Day12 {
         let mut pos = (0, 0);
         let mut way = (10, -1);
 
-        for i in input {
-            let command = i.chars().next().unwrap();
-            let amount = i
-                .chars()
-                .skip(1)
-                .collect::<String>()
-                .parse::<i64>()
-                .unwrap();
-
+        for &command in input {
             match command {
-                'N' => way = Direction::Up.move_along(way, amount),
-                'S' => way = Direction::Down.move_along(way, amount),
-                'W' => way = Direction::Left.move_along(way, amount),
-                'E' => way = Direction::Right.move_along(way, amount),
-                'F' => pos = move_to_waypoint(pos, &way, amount),
-                'R' => way = rotate_cw(way, amount / 90),
-                'L' => way = rotate_acw(way, amount / 90),
-                c => unreachable!("WHAT! {}", c),
+                N(amount) => way = Direction::Up.move_along(way, amount),
+                S(amount) => way = Direction::Down.move_along(way, amount),
+                W(amount) => way = Direction::Left.move_along(way, amount),
+                E(amount) => way = Direction::Right.move_along(way, amount),
+                F(amount) => pos = move_to_waypoint(pos, &way, amount),
+                R(amount) => way = rotate_cw(way, amount),
+                L(amount) => way = rotate_acw(way, amount),
             }
         }
 
@@ -78,11 +60,11 @@ impl Aoc2020 for Day12 {
     }
 }
 
-fn move_to_waypoint((x, y): Point, &(wx, wy): &Point, amount: i64) -> Point {
+fn move_to_waypoint((x, y): Point, &(wx, wy): &Point, amount: i32) -> Point {
     (x + wx * amount, y + wy * amount)
 }
 
-fn rotate_cw((x, y): Point, deg: i64) -> Point {
+fn rotate_cw((x, y): Point, deg: i32) -> Point {
     match deg {
         1 => (-y, x),
         2 => (-x, -y),
@@ -91,7 +73,7 @@ fn rotate_cw((x, y): Point, deg: i64) -> Point {
     }
 }
 
-fn rotate_acw((x, y): Point, deg: i64) -> Point {
+fn rotate_acw((x, y): Point, deg: i32) -> Point {
     match deg {
         1 => (y, -x),
         2 => (-x, -y),
@@ -100,7 +82,42 @@ fn rotate_acw((x, y): Point, deg: i64) -> Point {
     }
 }
 
-type Point = (i64, i64);
+type Point = (i32, i32);
+
+use Action::*;
+#[derive(Copy, Clone)]
+pub enum Action {
+    N(i32),
+    E(i32),
+    S(i32),
+    W(i32),
+    R(i32),
+    L(i32),
+    F(i32),
+}
+
+impl Action {
+    fn from(s: &str) -> Self {
+        let command = s.chars().next().unwrap();
+        let amount = s
+            .chars()
+            .skip(1)
+            .collect::<String>()
+            .parse::<i32>()
+            .unwrap();
+
+        match command {
+            'N' => N(amount),
+            'S' => S(amount),
+            'W' => W(amount),
+            'E' => E(amount),
+            'F' => F(amount),
+            'R' => R(amount / 90),
+            'L' => L(amount / 90),
+            c => unreachable!("WHAT! {}", c),
+        }
+    }
+}
 
 // TODO this is the third or so time I've written this!
 #[derive(Debug)]
@@ -111,7 +128,7 @@ enum Direction {
     Down,
 }
 impl Direction {
-    fn from(v: i64) -> Self {
+    fn from(v: i32) -> Self {
         match v {
             0 => Direction::Up,
             1 => Direction::Right,
@@ -120,7 +137,7 @@ impl Direction {
             _ => panic!("Unknown direction {}", v),
         }
     }
-    fn to_int(&self) -> i64 {
+    fn to_int(&self) -> i32 {
         match self {
             Direction::Up => 0,
             Direction::Right => 1,
@@ -128,13 +145,13 @@ impl Direction {
             Direction::Left => 3,
         }
     }
-    fn rotate_cw(&self, dir: i64) -> Self {
+    fn rotate_cw(&self, dir: i32) -> Self {
         Self::from((self.to_int() + dir) % 4)
     }
-    fn rotate_acw(&self, dir: i64) -> Self {
+    fn rotate_acw(&self, dir: i32) -> Self {
         Self::from((self.to_int() + 4 - dir) % 4)
     }
-    fn move_along(&self, (x, y): (i64, i64), amount: i64) -> (i64, i64) {
+    fn move_along(&self, (x, y): (i32, i32), amount: i32) -> (i32, i32) {
         match self {
             Direction::Up => (x, y - amount),
             Direction::Right => (x + amount, y),

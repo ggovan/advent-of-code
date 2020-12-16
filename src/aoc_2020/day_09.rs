@@ -32,6 +32,7 @@ fn has_match(ns: &[i64], preamble: usize) -> i64 {
     assert!(preamble <= 25);
     let mut thing: Vec<[i64; 24]> = Vec::with_capacity(ns.len());
 
+    // probably don't need to compute EVERYTHING ahead of time
     for i in 0..(ns.len() - 1) {
         let mut arr = [0; 24];
         for j in (i + 1)..cmp::min(i + preamble, ns.len()) {
