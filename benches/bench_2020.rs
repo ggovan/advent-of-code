@@ -17,6 +17,7 @@ pub fn criterion_benchmark_2020(c: &mut Criterion) {
     bench::<aoc_2020::Day13>(c, 2020);
     bench::<aoc_2020::Day14>(c, 2020);
     bench::<aoc_2020::Day15>(c, 2020);
+    bench::<aoc_2020::Day16>(c, 2020);
 }
 
 fn bench<Day: aoc_2020::Aoc2020>(c: &mut Criterion, year: usize) {
