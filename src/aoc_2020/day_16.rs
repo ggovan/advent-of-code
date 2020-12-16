@@ -21,7 +21,7 @@ impl Aoc2020 for Day16 {
             .lines()
             .map(parse_rule)
             .collect::<Vec<_>>();
-        let my_ticket = parse_ticket(iter.next().unwrap().lines().skip(1).next().unwrap());
+        let my_ticket = parse_ticket(iter.next().unwrap().lines().nth(1).unwrap());
         let tickets = iter
             .next()
             .unwrap()
@@ -49,48 +49,40 @@ impl Aoc2020 for Day16 {
             .filter(|t| t.iter().all(|&v| rules.iter().any(|r| r.valid(v))))
             .collect::<Vec<_>>();
 
-        let mut possible_rules: [usize; 0x14] = [0b11111111111111111111; 20];
+        let mut possible_rules_in_position: [usize; 0x14] = [0b11111111111111111111; 20];
 
-        for _ in 0..2 {
-            for ticket in valid_tickets.iter() {
-                for (i, val) in ticket.iter().enumerate() {
-                    if possible_rules[i].count_ones() != 1 {
-                        // get rid of all the rules that don't fit
-                        // only works on the first iteration
-                        let possible = &possible_rules[i];
-                        let still_possible = rules
-                            .iter()
-                            .enumerate()
-                            .filter(|(i, _)| possible & (1 << i) != 0)
-                            .filter(|(_, rule)| rule.valid(*val))
-                            .fold(0, |acc, (i, _)| acc | (1 << i));
-                        possible_rules[i] = still_possible;
-                    }
+        // get rid of all the rules that don't fit a column
+        for (col, c_rs) in possible_rules_in_position.iter_mut().enumerate() {
+            for (r_i, r) in rules.iter().enumerate() {
+                if !valid_tickets.iter().all(|t| r.valid(t[col])) {
+                    *c_rs &= !(1 << r_i);
+                }
+            }
+        }
 
-                    if possible_rules[i].count_ones() == 1 {
-                        // remove this from all others
-                        let set_bit = possible_rules[i];
-                        for r_i in 0..possible_rules.len() {
-                            if i == r_i {
-                                continue;
-                            }
-                            possible_rules[r_i] &= !set_bit;
+        loop {
+            for col in 0..possible_rules_in_position.len() {
+                let p_rs = possible_rules_in_position[col];
+                if p_rs.count_ones() == 1 {
+                    // remove this from all others
+                    for r in possible_rules_in_position.iter_mut() {
+                        if p_rs == *r {
+                            continue;
                         }
+                        *r &= !p_rs;
                     }
                 }
             }
 
-            // possible_rules.iter().for_each(|rs| {
-            //     dbg!(rs);
-            // });
-            // println!();
-
-            if possible_rules.iter().all(|rs| rs.count_ones() == 1) {
+            if possible_rules_in_position
+                .iter()
+                .all(|rs| rs.count_ones() == 1)
+            {
                 break;
             }
         }
 
-        possible_rules
+        possible_rules_in_position
             .iter()
             .enumerate()
             .map(|(i, r)| (i, &rules[r.trailing_zeros() as usize]))
@@ -111,6 +103,7 @@ fn parse_rule(s: &str) -> Rule {
         clause_2: (c2_min.parse().unwrap(), c2_max.parse().unwrap()),
     }
 }
+
 type Clause = (u64, u64);
 
 #[derive(Debug, Clone, PartialEq)]

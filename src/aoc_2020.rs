@@ -33,7 +33,7 @@ pub use day_1::Day01;
 
 use crate::files::Res;
 use std::fmt::Display;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 pub fn run_all(day: Option<usize>) -> Res<()> {
     let start = Instant::now();
@@ -72,21 +72,23 @@ pub trait Aoc2020 {
     fn run() -> Res<()> {
         println!("Day {}", Self::day());
 
-        let start = Instant::now();
-        let input = Self::load()?;
-        let time_input = Instant::now();
+        fn time<T>(f: impl Fn() -> T) -> (T, Duration) {
+            let start = Instant::now();
+            let res = f();
+            (res, Instant::now() - start)
+        }
 
-        let res_1 = Self::part_1(&input);
-        let time_1 = Instant::now();
+        let (input, t) = time(Self::load);
+        let input = input?;
+        println!("  input loaded in {:?}", t);
 
-        let res_2 = Self::part_2(&input);
-        let time_2 = Instant::now();
+        let (res_1, t) = time(|| Self::part_1(&input));
+        println!("  part 1: {} in {:?}", res_1, t);
 
-        println!("  input loaded in {:?}", time_input - start);
-        println!("  part 1: {} in {:?}", res_1, time_1 - time_input);
-        println!("  part 2: {} in {:?}", res_2, time_2 - time_1);
+        let (res_2, t) = time(|| Self::part_2(&input));
+        println!("  part 2: {} in {:?}", res_2, t);
+
         println!();
-
         Ok(())
     }
 
