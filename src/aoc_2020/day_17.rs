@@ -1,6 +1,6 @@
 use crate::aoc_2020::Aoc2020;
 use crate::files::Res;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fs::read_to_string;
 
 pub struct Day17;
@@ -50,50 +50,26 @@ impl Aoc2020 for Day17 {
 }
 
 fn run_generation(points: &Points, is_4d: bool) -> Points {
-    let (min, max) = get_bounds(points);
+    let mut adjacents: HashMap<Point4d, usize> = HashMap::new();
+
+    for p in points {
+        if points.contains(p) {
+            add_adjacents(&mut adjacents, *p, is_4d);
+        }
+    }
+
     let mut next = Points::new();
 
-    for x in (min.0 - 1)..=(max.0 + 1) {
-        for y in (min.1 - 1)..=(max.1 + 1) {
-            for z in (min.2 - 1)..=(max.2 + 1) {
-                for w in (min.3 - 1)..=(max.3 + 1) {
-                    let active_count = get_populated_neighbours(points, (x, y, z, w), is_4d);
-                    match points.contains(&(x, y, z, w)) {
-                        true if active_count == 2 || active_count == 3 => {
-                            next.insert((x, y, z, w));
-                        }
-                        false if active_count == 3 => {
-                            next.insert((x, y, z, w));
-                        }
-                        _ => {}
-                    }
-                }
-            }
+    for (p, v) in adjacents {
+        if v == 3 || (v == 2 && points.contains(&p)) {
+            next.insert(p);
         }
     }
 
     next
 }
 
-fn get_bounds(points: &Points) -> (Point4d, Point4d) {
-    // TODO - fold over this just once!
-    (
-        (
-            points.iter().min_by_key(|p| p.0).unwrap().0,
-            points.iter().min_by_key(|p| p.1).unwrap().1,
-            points.iter().min_by_key(|p| p.2).unwrap().2,
-            points.iter().min_by_key(|p| p.3).unwrap().3,
-        ),
-        (
-            points.iter().max_by_key(|p| p.0).unwrap().0,
-            points.iter().max_by_key(|p| p.1).unwrap().1,
-            points.iter().max_by_key(|p| p.2).unwrap().2,
-            points.iter().max_by_key(|p| p.3).unwrap().3,
-        ),
-    )
-}
-
-fn get_populated_neighbours(points: &Points, p: Point4d, is_4d: bool) -> usize {
+fn add_adjacents(adjacents: &mut HashMap<Point4d, usize>, p: Point4d, is_4d: bool) {
     (-1..=1)
         .flat_map(|x| {
             (-1..=1).flat_map(move |y| {
@@ -103,20 +79,6 @@ fn get_populated_neighbours(points: &Points, p: Point4d, is_4d: bool) -> usize {
                 })
             })
         })
-        .filter(|&n| n != p && points.contains(&n))
-        .count()
-}
-
-fn print_points(points: &Points) {
-    let (min, max) = get_bounds(points);
-
-    for y in (min.1)..=max.1 {
-        for x in (min.0)..=max.0 {
-            match points.contains(&(x, y, 0, 0)) {
-                true => print!("#"),
-                false => print!("."),
-            }
-        }
-        print!("\n");
-    }
+        .filter(|&n| n != p)
+        .for_each(|p| *adjacents.entry(p).or_insert(0) += 1);
 }
