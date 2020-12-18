@@ -33,7 +33,6 @@ impl Aoc2020 for Day17 {
         let mut ca = input.clone();
         for _ in 0..6 {
             ca = run_generation(&ca, false);
-            // print_points(&ca);
         }
 
         ca.len()
