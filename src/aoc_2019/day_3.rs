@@ -5,7 +5,7 @@ pub fn day_3() -> Res<()> {
     let input = read_better("data/2019/day_3.in", &LineSeg::parse)?;
     let wires = input.map(|ss| Wire::from_segments(&ss)).collect::<Vec<_>>();
 
-    let intersections = Wire::intersection_points(&wires[0], &wires[1]);
+    let intersections = Wire::intersection_points(&wires[0], &wires[1], true);
     let min = intersections
         .iter()
         .map(|Point(x, y)| x.abs() + y.abs())
@@ -24,25 +24,25 @@ pub fn day_3() -> Res<()> {
     Ok(())
 }
 
-#[derive(Copy, Clone, Debug)]
-struct Point(i32, i32);
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub struct Point(pub i32, pub i32);
 
 #[derive(Copy, Clone, PartialEq, Debug)]
-enum Direction {
+pub enum Direction {
     H,
     V,
 }
 
 #[derive(Debug)]
-struct LineSeg {
-    start: Point,
-    length: i32,
-    direction: Direction,
+pub struct LineSeg {
+    pub start: Point,
+    pub length: i32,
+    pub direction: Direction,
 }
 
 #[derive(Debug)]
-struct Wire {
-    segments: Vec<LineSeg>,
+pub struct Wire {
+    pub segments: Vec<LineSeg>,
 }
 
 impl LineSeg {
@@ -130,12 +130,26 @@ impl Wire {
         }
     }
 
-    fn intersection_points(w1: &Wire, w2: &Wire) -> Vec<Point> {
+    pub fn intersection_points(w1: &Wire, w2: &Wire, include_edge: bool) -> Vec<Point> {
         let mut res = Vec::new();
         for seg1 in &w1.segments {
             for seg2 in &w2.segments {
                 if let Some(point) = LineSeg::find_intersection(seg1, seg2) {
-                    res.push(point)
+                    if include_edge {
+                        res.push(point)
+                    } else {
+                        // i.e. we check if this is the edge of one of the lines
+                        // added for day 17
+                        if point == seg1.start
+                            || point == seg1.end_point()
+                            || point == seg2.start
+                            || point == seg2.end_point()
+                        {
+                            // don't count it;
+                        } else {
+                            res.push(point)
+                        }
+                    }
                 }
             }
         }

@@ -447,13 +447,17 @@ impl MapFmt for i64 {
     }
 }
 
-pub fn output_map<T: MapFmt>(map: &HashMap<(i64, i64), T>) {
-    let (x_min, x_max, y_min, y_max) = (
+pub fn map_bounds<T>(map: &HashMap<(i64, i64), T>) -> (i64, i64, i64, i64) {
+    (
         map.keys().min_by_key(|x| x.0).unwrap().0,
         map.keys().max_by_key(|x| x.0).unwrap().0,
         map.keys().min_by_key(|x| x.1).unwrap().1,
         map.keys().max_by_key(|x| x.1).unwrap().1,
-    );
+    )
+}
+
+pub fn output_map<T: MapFmt>(map: &HashMap<(i64, i64), T>) {
+    let (x_min, x_max, y_min, y_max) = map_bounds(map);
 
     for r in y_min..=y_max {
         println!(

@@ -5,6 +5,7 @@ mod day_12;
 pub mod day_14;
 pub mod day_15;
 pub mod day_16;
+pub mod day_17;
 mod day_3;
 mod intcode;
 use crate::aoc_2020::Aoc2020;
@@ -34,6 +35,7 @@ pub fn main(day: Option<usize>) -> Res<()> {
     day_14::Day14::run_me_maybe(day)?;
     day_15::Day15::run_me_maybe(day)?;
     day_16::Day16::run_me_maybe(day)?;
+    day_17::Day17::run_me_maybe(day)?;
 
     Ok(())
 }
