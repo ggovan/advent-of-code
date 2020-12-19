@@ -16,6 +16,7 @@ impl Aoc2020 for Day18 {
         Ok(read_to_string("data/2020/day_18.in")?)
     }
 
+    /// TODO make this totally streaming, i.e. pet rid of the prog buffer.
     fn part_1(input: &Self::Input) -> Self::Result1 {
         input
             .lines()
@@ -32,8 +33,20 @@ impl Aoc2020 for Day18 {
             .sum()
     }
 
-    fn part_2(_input: &Self::Input) -> Self::Result2 {
-        18
+    fn part_2(input: &Self::Input) -> Self::Result2 {
+        input
+            .lines()
+            .map(|l| {
+                // println!("I have a line {}", l);
+                let mut lexed_iter = l.chars().filter_map(lex);
+                let mut prog: [Option<Symbol>; 90] = [None; 90]; // 90 should be big enough
+                parser_part_2(&mut lexed_iter, &mut prog, 0);
+
+                // print_expr(&prog);
+
+                compute(&prog)
+            })
+            .sum()
     }
 }
 
@@ -58,6 +71,7 @@ fn lex(c: char) -> Option<Symbol> {
     }
 }
 
+/// Parse an expression into reverse polish notation with no operator precedence
 fn parser<It: Iterator<Item = Symbol>>(
     iter: &mut It,
     prog: &mut [Option<Symbol>],
@@ -101,6 +115,58 @@ fn parser<It: Iterator<Item = Symbol>>(
     prog_ptr
 }
 
+/// Parse an expression into reverse polish notation with + operator precedence
+fn parser_part_2<It: Iterator<Item = Symbol>>(
+    iter: &mut It,
+    prog: &mut [Option<Symbol>],
+    mut prog_ptr: usize,
+) -> usize {
+    let mut open_add = false;
+    let mut open_mults = 0;
+    loop {
+        prog_ptr = match iter.next() {
+            Some(Val(v)) => {
+                prog[prog_ptr] = Some(Val(v));
+                if open_add {
+                    prog[prog_ptr + 1] = Some(Add);
+                    open_add = false;
+                    prog_ptr + 2
+                } else {
+                    prog_ptr + 1
+                }
+            }
+            Some(Add) => {
+                open_add = true;
+                prog_ptr
+            }
+            Some(Mult) => {
+                open_mults += 1;
+                prog_ptr
+            }
+            Some(Open) => {
+                prog_ptr = parser_part_2(iter, prog, prog_ptr);
+                if open_add {
+                    prog[prog_ptr] = Some(Add);
+                    open_add = false;
+                    prog_ptr + 1
+                } else {
+                    prog_ptr
+                }
+            }
+            Some(Close) => break,
+            None => break,
+        };
+    }
+
+    // multiplication has the lowest priority, so just a bunch on the end
+    for _ in 0..open_mults {
+        prog[prog_ptr] = Some(Mult);
+        prog_ptr += 1;
+    }
+
+    prog_ptr
+}
+
 fn print_expr(expr: &[Option<Symbol>]) {
     expr.iter().filter_map(|x| *x).for_each(|s| match s {
         Add => print!("+ "),
@@ -111,6 +177,7 @@ fn print_expr(expr: &[Option<Symbol>]) {
     println!();
 }
 
+// Run a reverse-polish notation computation
 fn compute(prog: &[Option<Symbol>]) -> u64 {
     let mut stack = [0; 90];
     let mut ptr = 0;
