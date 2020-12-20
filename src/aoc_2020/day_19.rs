@@ -1,6 +1,6 @@
 use crate::aoc_2020::Aoc2020;
 use crate::files::Res;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::fs::read_to_string;
 
 pub struct Day19;
@@ -27,82 +27,96 @@ impl Aoc2020 for Day19 {
     fn part_1((map, input): &Self::Input) -> Self::Result1 {
         input
             .iter()
-            .filter(|l| {
-                if let Some(len) = matches(map, l, 0, 0) {
-                    if len == l.len() {
-                        // println!("Accepted: {}", l);
-                        len == l.len()
-                    } else {
-                        // println!("Rejected: {}", l);
-                        false
-                    }
-                } else {
-                    // println!("Rejected: {}", l);
-                    false
-                }
-            })
+            .filter(|l| matcher_2(&map, &l.chars().collect::<Vec<_>>()))
             .count()
     }
 
     fn part_2((map, input): &Self::Input) -> Self::Result2 {
         let mut map = map.clone();
 
-        map.insert(8, Either((8, 0, 0), (42, 8, 0)));
+        map.insert(8, Either((42, 0, 0), (42, 8, 0)));
         map.insert(11, Either((42, 31, 0), (42, 11, 31)));
 
         input
             .iter()
-            .filter(|l| {
-                if let Some(len) = matches(&map, l, 0, 0) {
-                    if len == l.len() {
-                        // println!("Accepted: {}", l);
-                        len == l.len()
-                    } else {
-                        // println!("Rejected: {}", l);
-                        false
-                    }
-                } else {
-                    // println!("Rejected: {}", l);
-                    false
-                }
-            })
+            .filter(|l| matcher_2(&map, &l.chars().collect::<Vec<_>>()))
             .count()
     }
 }
 
-fn matches(map: &RuleMap, s: &str, rule: usize, index: usize) -> Option<usize> {
-    println!("{} {} {}", s, rule, index);
-    if index >= s.len() {
-        return None;
-    }
-    match map[&rule] {
-        Char(c) => {
-            s.chars()
-                .skip(index)
-                .next()
-                .and_then(|o| if o == c { Some(index + 1) } else { None })
-        }
-        Sequence(seq) => match_seq(map, s, seq, index),
-        Either(s1, s2) => match_seq(map, s, s2, index).or_else(|| match_seq(map, s, s1, index)),
-    }
+struct StackElem {
+    rule: usize,
+    index: usize,
+    queue: VecDeque<usize>,
 }
 
-fn match_seq(map: &RuleMap, s: &str, (s1, s2, s3): Seq, index: usize) -> Option<usize> {
-    matches(map, s, s1, index)
-        .and_then(|index| {
-            if s2 == 0 {
-                Some(index)
-            } else {
-                matches(map, s, s2, index)
+fn matcher_2(map: &RuleMap, s: &[char]) -> bool {
+    let mut stack: VecDeque<StackElem> = VecDeque::new();
+    let mut queue: VecDeque<usize> = VecDeque::new();
+    queue.push_back(0);
+    let mut index = 0;
+    let mut go_right = false;
+
+    while let Some(rule) = queue.pop_front() {
+        match map[&rule] {
+            Char(c) if s.get(index).cloned() == Some(c) => {
+                index += 1;
             }
-        })
-        .and_then(|index| {
-            if s3 == 0 {
-                Some(index)
-            } else {
-                matches(map, s, s3, index)
+            Char(_) => {
+                if let Some(stack_elem) = stack.pop_back() {
+                    index = stack_elem.index;
+                    queue = stack_elem.queue;
+                    queue.push_front(stack_elem.rule);
+                    go_right = true;
+                } else {
+                    return false;
+                }
             }
-        })
+            Sequence((p1, p2, p3)) => {
+                if p3 != 0 {
+                    queue.push_front(p3);
+                }
+                if p2 != 0 {
+                    queue.push_front(p2);
+                }
+                queue.push_front(p1);
+            }
+            Either(s1, s2) => {
+                if go_right {
+                    go_right = false;
+
+                    let (p1, p2, p3) = s2;
+
+                    if p3 != 0 {
+                        queue.push_front(p3);
+                    }
+                    if p2 != 0 {
+                        queue.push_front(p2);
+                    }
+                    queue.push_front(p1);
+                } else {
+                    let cloned_queue = queue.clone();
+                    stack.push_back(StackElem {
+                        rule,
+                        index,
+                        queue: cloned_queue,
+                    });
+
+                    let (p1, p2, p3) = s1;
+
+                    if p3 != 0 {
+                        queue.push_front(p3);
+                    }
+                    if p2 != 0 {
+                        queue.push_front(p2);
+                    }
+                    queue.push_front(p1);
+                }
+            }
+        }
+    }
+
+    index == s.len()
 }
 
 type Seq = (usize, usize, usize);
