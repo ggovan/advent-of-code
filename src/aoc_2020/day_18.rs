@@ -21,7 +21,6 @@ impl Aoc2020 for Day18 {
         input
             .lines()
             .map(|l| {
-                // println!("I have a line {}", l);
                 let mut lexed_iter = l.chars().filter_map(lex);
                 let mut prog: [Option<Symbol>; 90] = [None; 90]; // 90 should be big enough
                 parser(&mut lexed_iter, &mut prog, 0);
@@ -37,7 +36,6 @@ impl Aoc2020 for Day18 {
         input
             .lines()
             .map(|l| {
-                // println!("I have a line {}", l);
                 let mut lexed_iter = l.chars().filter_map(lex);
                 let mut prog: [Option<Symbol>; 90] = [None; 90]; // 90 should be big enough
                 parser_part_2(&mut lexed_iter, &mut prog, 0);
