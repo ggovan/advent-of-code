@@ -40,6 +40,8 @@ mod day_21;
 pub use day_21::Day21;
 mod day_22;
 pub use day_22::Day22;
+mod day_23;
+pub use day_23::Day23;
 mod day_1;
 pub use day_1::Day01;
 
@@ -71,6 +73,7 @@ pub fn run_all(day: Option<usize>) -> Res<()> {
     Day20::run_me_maybe(day)?;
     Day21::run_me_maybe(day)?;
     Day22::run_me_maybe(day)?;
+    Day23::run_me_maybe(day)?;
 
     println!("Total time: {:?}", Instant::now() - start);
 

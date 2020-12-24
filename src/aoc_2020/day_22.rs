@@ -60,6 +60,11 @@ fn game((mut player, mut crab): (VecDeque<u8>, VecDeque<u8>)) -> (bool, VecDeque
     let mut previous_states: HashSet<(VecDeque<u8>, VecDeque<u8>)> = HashSet::new();
     let mut winner = None;
 
+    if player.iter().max().unwrap() > crab.iter().max().unwrap() {
+        // if the player has the highest card then they will win.
+        return (true, player);
+    }
+
     while !player.is_empty() && !crab.is_empty() {
         let cloned = (player.clone(), crab.clone());
         if !previous_states.insert(cloned) {
@@ -87,10 +92,8 @@ fn game((mut player, mut crab): (VecDeque<u8>, VecDeque<u8>)) -> (bool, VecDeque
             player.push_back(p);
             player.push_back(c);
         } else {
-            if c > p {
-                crab.push_back(c);
-                crab.push_back(p);
-            }
+            crab.push_back(c);
+            crab.push_back(p);
         }
     }
 
