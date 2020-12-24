@@ -25,19 +25,19 @@ impl Aoc2020 for Day24 {
     }
 
     fn part_2(input: &Self::Input) -> Self::Result2 {
+        const NEIGHBOURS: [Point; 6] = [(0, 1), (-1, 1), (1, -1), (0, -1), (1, 0), (-1, 0)];
         let mut populated_tiles: HashSet<Point> = get_starting_tiles(input).into_iter().collect();
+        let mut neighbours: HashMap<Point, usize> = HashMap::new();
 
         for _generation in 0..100 {
-            let mut neighbours: HashMap<Point, usize> = HashMap::new();
             for (n, ne) in populated_tiles.iter() {
-                let ns = [(0, 1), (-1, 1), (1, -1), (0, -1), (1, 0), (-1, 0)];
-                for neighbour in ns.iter().map(|(n2, ne2)| (n + n2, ne + ne2)) {
+                for neighbour in NEIGHBOURS.iter().map(|(n2, ne2)| (n + n2, ne + ne2)) {
                     *neighbours.entry(neighbour).or_insert(0) += 1;
                 }
             }
 
             populated_tiles = neighbours
-                .into_iter()
+                .drain()
                 .filter(|(k, v)| match (populated_tiles.contains(k), v) {
                     (true, &x) if x == 1 || x == 2 => true,
                     (false, 2) => true,
