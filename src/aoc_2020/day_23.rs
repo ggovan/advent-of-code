@@ -58,124 +58,58 @@ impl Aoc2020 for Day23 {
     }
 
     fn part_2(input: &Self::Input) -> Self::Result2 {
-        let mut cups = Vec::with_capacity(1_000_000);
-        cups.resize_with(9, || Rc::new(Cup::new(0)));
+        let mut succs = Vec::with_capacity(1_000_000);
+        succs.resize(9, 0);
 
-        let mut first_cup = Rc::new(Cup::new(input[0]));
-        let mut prev = first_cup.clone();
-        cups[input[0] - 1] = first_cup.clone();
-
-        for i in 1..9 {
-            let cup = Rc::new(Cup::new(input[i]));
-            cups[input[i] - 1] = cup.clone();
-            prev.set_next(Some(cup.clone()));
+        let mut prev = 1;
+        for i in 0..9 {
+            let cup = input[i];
+            succs[prev - 1] = cup;
             prev = cup;
         }
 
+        succs.resize(1_000_000, 0);
         for i in 10..=1_000_000 {
-            let cup = Rc::new(Cup::new(i));
-            cups.push(cup.clone());
-            prev.set_next(Some(cup.clone()));
-            prev = cup;
+            succs[prev - 1] = i;
+            prev = i;
         }
 
-        // let last_cup = cups.last().unwrap();
-        // last_cup.set_next(Some(first_cup.clone()));
-        prev.set_next(Some(first_cup.clone()));
-        println!("{}", prev.value);
+        // let len = succs.len();
+        succs[prev - 1] = input[0];
 
-        for c in cups.iter().take(9) {
-            println!("{}", c.value);
-        }
+        // println!("{:?}", succs);
 
-        let mut current_val = first_cup.value;
-
-        let mut p_node = first_cup.clone();
-        for _ in 0..20 {
-            print!("{} ", p_node.value);
-            p_node = p_node.get_next();
-        }
-        println!();
+        let mut current_val = input[0];
 
         for _ in 0..10_000_000 {
-            //     // println!("({}) {:?}", cups[0], &cups[1..]);
-            let current_node = &cups[current_val - 1];
-            assert_eq!(current_val, current_node.value);
-            let mut p_node = current_node.clone();
-            // for _ in 0..20 {
-            //     print!("{} ", p_node.value);
-            //     p_node = p_node.get_next();
-            // }
-            // println!();
+            let first_to_move = succs[current_val - 1];
+            // println!("{} {}", current_val, first_to_move);
+            let second_to_move = succs[first_to_move - 1];
+            let last_to_move = succs[second_to_move - 1];
+            let after_moved = succs[last_to_move - 1];
 
-            let current_node = &cups[current_val - 1];
-            // dbg!(current_node.value);
-            let first_to_move = current_node.get_next();
-            let second_to_move = first_to_move.get_next();
-            let last_to_move = second_to_move.get_next();
-            let after_moved = last_to_move.get_next();
-
-            let invalid = [
-                current_val,
-                first_to_move.value,
-                second_to_move.value,
-                last_to_move.value,
-            ];
+            let invalid = [current_val, first_to_move, second_to_move, last_to_move];
 
             let mut destination = current_val;
             while invalid.contains(&destination) {
                 destination = if destination > 1 {
                     destination - 1
                 } else {
-                    cups.len()
+                    succs.len()
                 };
             }
 
-            let destination_node = &cups[destination - 1];
-            let after_destination = destination_node.get_next();
+            let after_destination = succs[destination - 1];
 
-            current_val = after_moved.value;
-            current_node.set_next(Some(after_moved));
-            destination_node.set_next(Some(first_to_move));
-            last_to_move.set_next(Some(after_destination));
+            succs[current_val - 1] = after_moved;
+            succs[destination - 1] = first_to_move;
+            succs[last_to_move - 1] = after_destination;
+            current_val = after_moved;
         }
 
-        let second = cups[0].get_next();
-        let third = second.get_next();
-        assert_eq!(cups[0].value, 1);
-        let mut p_node = cups[current_val - 1].clone();
-        for _ in 0..10 {
-            print!("{} ", p_node.value);
-            p_node = p_node.get_next();
-        }
-        println!();
-        dbg!(second.value) as u64 * dbg!(third.value) as u64
-    }
-}
+        let second = succs[0];
+        let third = succs[second - 1];
 
-struct Cup {
-    value: usize,
-    link: RefCell<Link>,
-}
-
-struct Link {
-    next: Option<Rc<Cup>>,
-}
-
-impl Cup {
-    fn new(value: usize) -> Self {
-        Self {
-            value,
-            link: RefCell::new(Link { next: None }),
-        }
-    }
-    fn set_next(&self, cup: Option<Rc<Cup>>) {
-        self.link.borrow_mut().next = cup;
-    }
-    fn get_next(&self) -> Rc<Cup> {
-        self.link.borrow().next.clone().unwrap().clone()
-    }
-    fn has_next(&self) -> bool {
-        self.link.borrow().next.is_some()
+        dbg!(second) as u64 * dbg!(third) as u64
     }
 }
