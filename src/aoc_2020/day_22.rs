@@ -1,5 +1,6 @@
 use crate::aoc_2020::Aoc2020;
 use crate::files::Res;
+use std::cmp::Ordering;
 use std::collections::{HashSet, VecDeque};
 use std::fs::read_to_string;
 
@@ -26,11 +27,12 @@ impl Aoc2020 for Day22 {
         while !player.is_empty() && !crab.is_empty() {
             let p = player.pop_front().unwrap();
             let c = crab.pop_front().unwrap();
-            if p > c {
-                player.push_back(p);
-                player.push_back(c);
-            } else {
-                if c > p {
+            match p.cmp(&c) {
+                Ordering::Greater => {
+                    player.push_back(p);
+                    player.push_back(c);
+                }
+                _ => {
                     crab.push_back(c);
                     crab.push_back(p);
                 }
@@ -97,13 +99,11 @@ fn game((mut player, mut crab): (VecDeque<u8>, VecDeque<u8>)) -> (bool, VecDeque
         }
     }
 
-    let (winner, hand) = if winner.is_some() || crab.is_empty() {
+    if winner.is_some() || crab.is_empty() {
         (true, player)
     } else {
         (false, crab)
-    };
-
-    return (winner, hand);
+    }
 }
 
 fn read_hand(s: &str) -> VecDeque<u8> {

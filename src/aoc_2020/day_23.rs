@@ -1,7 +1,5 @@
 use crate::aoc_2020::Aoc2020;
 use crate::files::Res;
-use std::cell::{Cell, RefCell};
-use std::rc::Rc;
 
 pub struct Day23;
 
@@ -14,7 +12,6 @@ impl Aoc2020 for Day23 {
         23
     }
     fn load() -> Res<Self::Input> {
-        // Ok(vec![3, 8, 9, 1, 2, 5, 4, 6, 7])
         Ok(vec![6, 8, 5, 9, 7, 4, 2, 1, 3])
     }
 
@@ -22,7 +19,7 @@ impl Aoc2020 for Day23 {
         let mut cups = input.clone();
 
         for _ in 0..100 {
-            println!("({}) {:?}", cups[0], &cups[1..]);
+            // println!("({}) {:?}", cups[0], &cups[1..]);
             let current_value = cups[0];
             let next_cups = [cups[1], cups[2], cups[3]];
 
@@ -51,8 +48,8 @@ impl Aoc2020 for Day23 {
             let len = cups.len();
             cups[len - 1] = current_value;
         }
-        println!("({}) {:?}", cups[0], &cups[1..]);
-        let (one_index, _) = cups.iter().enumerate().find(|(i, v)| **v == 1).unwrap();
+        // println!("({}) {:?}", cups[0], &cups[1..]);
+        let (one_index, _) = cups.iter().enumerate().find(|(_, v)| **v == 1).unwrap();
         cups.rotate_left(one_index);
         cups.iter().skip(1).map(|v| v.to_string()).collect()
     }
@@ -62,14 +59,13 @@ impl Aoc2020 for Day23 {
         succs.resize(9, 0);
 
         let mut prev = 1;
-        for i in 0..9 {
-            let cup = input[i];
-            succs[prev - 1] = cup;
-            prev = cup;
+        for cup in input {
+            succs[prev - 1] = *cup;
+            prev = *cup;
         }
 
         succs.resize(1_000_000, 0);
-        for i in 10..=1_000_000 {
+        for i in input.len()..=1_000_000 {
             succs[prev - 1] = i;
             prev = i;
         }
@@ -110,6 +106,6 @@ impl Aoc2020 for Day23 {
         let second = succs[0];
         let third = succs[second - 1];
 
-        dbg!(second) as u64 * dbg!(third) as u64
+        second as u64 * third as u64
     }
 }

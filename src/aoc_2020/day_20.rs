@@ -52,7 +52,6 @@ impl Aoc2020 for Day20 {
         assert_eq!(flipped_corners.len(), 2);
 
         // rotate it so that it a top left corner
-        let cloned = corner_piece.clone();
         while !is_top_left(&corner_piece, &flipped_corners) {
             corner_piece.rotate();
         }
@@ -232,7 +231,7 @@ fn get_lookup_map(tiles: &[Tile]) -> HashMap<u16, Vec<u64>> {
 
     for t in tiles {
         for e in &t.get_edges(true) {
-            let entry = map.entry(*e).or_insert(Vec::new());
+            let entry = map.entry(*e).or_insert_with(Vec::new);
             entry.push(t.id);
         }
     }

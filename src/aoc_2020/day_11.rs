@@ -64,7 +64,8 @@ fn run_step_vec(
     for (i, c) in ca.iter().enumerate() {
         new[i] = match c {
             '#' => {
-                let occupied_neighbours = get_occupied_neighbours_vec(ca, i, width, height, sight);
+                let occupied_neighbours =
+                    get_occupied_neighbours_vec(ca, i, (width as i32, height as i32), sight);
                 if occupied_neighbours >= crowd {
                     'L'
                 } else {
@@ -72,7 +73,8 @@ fn run_step_vec(
                 }
             }
             'L' => {
-                let occupied_neighbours = get_occupied_neighbours_vec(ca, i, width, height, sight);
+                let occupied_neighbours =
+                    get_occupied_neighbours_vec(ca, i, (width as i32, height as i32), sight);
                 if occupied_neighbours == 0 {
                     '#'
                 } else {
@@ -97,22 +99,21 @@ fn get(ca: &[char], column: i32, row: i32, width: i32, height: i32) -> char {
     }
 }
 
+type Point = (i32, i32);
+
 /// get the first non-empty cell value along the vector (checking the point first)
 fn get_vec(
     ca: &[char],
-    column: i32,
-    row: i32,
-    c_vec: i32,
-    r_vec: i32,
-    width: i32,
-    height: i32,
+    (column, row): Point,
+    (c_vec, r_vec): Point,
+    (width, height): Point,
     sight: bool,
 ) -> char {
     let cn = column + c_vec;
     let rn = row + r_vec;
     let hit = get(ca, cn, rn, width, height);
     if hit == '.' && sight {
-        get_vec(ca, cn, rn, c_vec, r_vec, width, height, sight)
+        get_vec(ca, (cn, rn), (c_vec, r_vec), (width, height), sight)
     } else {
         hit
     }
@@ -121,10 +122,10 @@ fn get_vec(
 fn get_occupied_neighbours_vec(
     ca: &[char],
     i: usize,
-    width: usize,
-    height: usize,
+    (width, height): Point,
     sight: bool,
 ) -> usize {
+    let i = i as i32;
     let row = (i / width) as i32;
     let col = i as i32 - (width as i32 * row);
 
@@ -139,7 +140,15 @@ fn get_occupied_neighbours_vec(
         (1, 1),
     ]
     .iter()
-    .filter(|(r, c)| '#' == get_vec(ca, col, row, *c, *r, width as i32, height as i32, sight))
+    .filter(|(r, c)| {
+        '#' == get_vec(
+            ca,
+            (col, row),
+            (*c, *r),
+            (width as i32, height as i32),
+            sight,
+        )
+    })
     .count()
 }
 

@@ -64,7 +64,6 @@ fn solve_both_parts(input: &[(HashSet<String>, HashSet<String>)]) -> (usize, Str
                         .filter(|i| {
                             i_s.contains(<Rc<String> as std::borrow::Borrow<String>>::borrow(i))
                         })
-                        .map(|i| i)
                         .collect();
                 }
                 if ingredients.len() == 1 {
@@ -88,14 +87,11 @@ fn solve_both_parts(input: &[(HashSet<String>, HashSet<String>)]) -> (usize, Str
         .sum();
 
     danger_pairs.sort_by_key(|(a, _)| a.clone());
-    let dangerous_ingredients = format!(
-        "{}",
-        danger_pairs
-            .iter()
-            .map(|(_, i)| i.to_string())
-            .collect::<Vec<String>>()
-            .join(",")
-    );
+    let dangerous_ingredients = danger_pairs
+        .iter()
+        .map(|(_, i)| i.to_string())
+        .collect::<Vec<String>>()
+        .join(",");
 
     (safe_ingredients, dangerous_ingredients)
 }

@@ -64,7 +64,7 @@ fn lex(c: char) -> Option<Symbol> {
         ')' => Some(Close),
         '*' => Some(Mult),
         '+' => Some(Add),
-        n if n >= '0' && n <= '9' => Some(Val(n as u64 - '0' as u64)),
+        n if ('0'..='9').contains(&n) => Some(Val(n as u64 - '0' as u64)),
         _ => None,
     }
 }
@@ -165,6 +165,7 @@ fn parser_part_2<It: Iterator<Item = Symbol>>(
     prog_ptr
 }
 
+#[allow(unused)]
 fn print_expr(expr: &[Option<Symbol>]) {
     expr.iter().filter_map(|x| *x).for_each(|s| match s {
         Add => print!("+ "),
@@ -176,6 +177,7 @@ fn print_expr(expr: &[Option<Symbol>]) {
 }
 
 // Run a reverse-polish notation computation
+#[allow(clippy::assign_op_pattern)]
 fn compute(prog: &[Option<Symbol>]) -> u64 {
     let mut stack = [0; 90];
     let mut ptr = 0;
