@@ -125,11 +125,7 @@ fn get_occupied_neighbours_vec(
     (width, height): Point,
     sight: bool,
 ) -> usize {
-    let i = i as i32;
-    let row = (i / width) as i32;
-    let col = i as i32 - (width as i32 * row);
-
-    [
+    const NEIGHBOURS: [Point; 8] = [
         (-1, -1),
         (-1, 0),
         (-1, 1),
@@ -138,18 +134,15 @@ fn get_occupied_neighbours_vec(
         (1, -1),
         (1, 0),
         (1, 1),
-    ]
-    .iter()
-    .filter(|(r, c)| {
-        '#' == get_vec(
-            ca,
-            (col, row),
-            (*c, *r),
-            (width as i32, height as i32),
-            sight,
-        )
-    })
-    .count()
+    ];
+    let i = i as i32;
+    let row = i / width;
+    let col = i - (width * row);
+
+    NEIGHBOURS
+        .iter()
+        .filter(|(r, c)| '#' == get_vec(ca, (col, row), (*c, *r), (width, height), sight))
+        .count()
 }
 
 #[cfg(test)]
