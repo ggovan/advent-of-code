@@ -1,3 +1,4 @@
+use crate::common::geometry::{self, Direction};
 use crate::files::{read_better, Res};
 use std::collections::{HashMap, HashSet};
 
@@ -375,105 +376,11 @@ pub fn day_9() -> Res<(i64, i64)> {
     ))
 }
 
-#[derive(Debug)]
-enum Direction {
-    Left,
-    Up,
-    Right,
-    Down,
-}
-impl Direction {
-    fn from(v: i64) -> Self {
-        match v {
-            0 => Direction::Up,
-            1 => Direction::Right,
-            2 => Direction::Down,
-            3 => Direction::Left,
-            _ => panic!("Unknown direction {}", v),
-        }
-    }
-    fn to_int(&self) -> i64 {
-        match self {
-            Direction::Up => 0,
-            Direction::Right => 1,
-            Direction::Down => 2,
-            Direction::Left => 3,
-        }
-    }
-    fn rotate(&self, dir: i64) -> Self {
-        Self::from((self.to_int() + if dir == 0 { 3 } else { 1 }) % 4)
-    }
-    fn move_along(&self, (x, y): (i64, i64)) -> (i64, i64) {
-        match self {
-            Direction::Up => (x, y - 1),
-            Direction::Right => (x + 1, y),
-            Direction::Down => (x, y + 1),
-            Direction::Left => (x - 1, y),
-        }
-    }
-}
-
-pub trait MapFmt {
-    fn out(&self) -> char;
-}
-
-impl MapFmt for char {
-    fn out(&self) -> char {
-        *self
-    }
-}
-
-impl MapFmt for bool {
-    fn out(&self) -> char {
-        if *self {
-            '#'
-        } else {
-            ' '
-        }
-    }
-}
-
-impl MapFmt for i64 {
-    fn out(&self) -> char {
-        match *self {
-            0 => ' ',
-            1 => '#',
-            2 => '*',
-            3 => '_',
-            4 => '.',
-            5 => '5',
-            _ => ' ',
-        }
-    }
-}
-
-pub fn map_bounds<T>(map: &HashMap<(i64, i64), T>) -> (i64, i64, i64, i64) {
-    (
-        map.keys().min_by_key(|x| x.0).unwrap().0,
-        map.keys().max_by_key(|x| x.0).unwrap().0,
-        map.keys().min_by_key(|x| x.1).unwrap().1,
-        map.keys().max_by_key(|x| x.1).unwrap().1,
-    )
-}
-
-pub fn output_map<T: MapFmt>(map: &HashMap<(i64, i64), T>) {
-    let (x_min, x_max, y_min, y_max) = map_bounds(map);
-
-    for r in y_min..=y_max {
-        println!(
-            "{}",
-            (x_min..=x_max)
-                .map(|c| map.get(&(c, r)).map_or(' ', T::out))
-                .collect::<String>()
-        );
-    }
-}
-
 fn painter(machine: &mut Machine, start: bool) -> i64 {
     let mut surface: HashMap<(i64, i64), bool> = HashMap::new();
     let mut pos = (0, 0);
     surface.insert(pos, start);
-    let mut dir = Direction::Up;
+    let mut dir = Direction::North;
 
     loop {
         let current = if *surface.get(&pos).unwrap_or(&false) {
@@ -489,14 +396,14 @@ fn painter(machine: &mut Machine, start: bool) -> i64 {
 
         let out_2 = machine.run_to_output(None);
         if let Some(out_val) = out_2 {
-            dir = dir.rotate(out_val);
-            pos = dir.move_along(pos);
+            dir = dir.rotate_cw_amount(out_val);
+            pos = dir.next_point(pos);
         } else {
             break;
         }
     }
 
-    output_map(&surface);
+    geometry::output_map(&surface);
     surface.len() as i64
 }
 
@@ -548,7 +455,7 @@ pub fn day_13() -> Res<i64> {
         }
         set.insert((x, y));
     }
-    output_map(&map);
+    geometry::output_map(&map);
 
     println!("  part 1 {:?}", set.len());
 
@@ -576,7 +483,7 @@ pub fn day_13() -> Res<i64> {
         //         map.insert((x, y), ty);
         //     }
         // }
-        // output_map(&map);
+        // geometry::output_map(&map);
 
         let ball = squares.iter().rev().find(|s| s.2 == 4).unwrap();
         let paddle = squares.iter().rev().find(|s| s.2 == 3).unwrap();

@@ -25,24 +25,24 @@ pub fn day_3() -> Res<()> {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct Point(pub i32, pub i32);
+struct Point(i32, i32);
 
 #[derive(Copy, Clone, PartialEq, Debug)]
-pub enum Direction {
+enum Direction {
     H,
     V,
 }
 
 #[derive(Debug)]
-pub struct LineSeg {
-    pub start: Point,
-    pub length: i32,
-    pub direction: Direction,
+struct LineSeg {
+    start: Point,
+    length: i32,
+    direction: Direction,
 }
 
 #[derive(Debug)]
-pub struct Wire {
-    pub segments: Vec<LineSeg>,
+struct Wire {
+    segments: Vec<LineSeg>,
 }
 
 impl LineSeg {
@@ -130,7 +130,7 @@ impl Wire {
         }
     }
 
-    pub fn intersection_points(w1: &Wire, w2: &Wire, include_edge: bool) -> Vec<Point> {
+    fn intersection_points(w1: &Wire, w2: &Wire, include_edge: bool) -> Vec<Point> {
         let mut res = Vec::new();
         for seg1 in &w1.segments {
             for seg2 in &w2.segments {

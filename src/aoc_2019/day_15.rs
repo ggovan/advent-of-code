@@ -1,5 +1,6 @@
 use super::intcode;
 use crate::aoc_2020::Aoc2020;
+use crate::common::geometry::{self, Direction};
 use crate::files::Res;
 use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::{cmp::Ordering, collections::VecDeque};
@@ -8,70 +9,22 @@ pub struct Day15;
 
 type Point = (i64, i64);
 
-#[derive(Copy, Clone)]
-enum Direction {
-    North,
-    East,
-    South,
-    West,
-}
-
-impl Direction {
-    fn rotate_cw(&self) -> Self {
-        use Direction::*;
-        match self {
-            North => East,
-            East => South,
-            South => West,
-            West => North,
-        }
-    }
-
-    fn rotate_acw(&self) -> Self {
-        use Direction::*;
-        match self {
-            North => West,
-            East => North,
-            South => East,
-            West => South,
-        }
-    }
-
-    fn rotate(&self, acw: bool) -> Self {
-        if acw {
-            self.rotate_acw()
-        } else {
-            self.rotate_cw()
-        }
-    }
-
-    fn as_input(&self) -> i64 {
-        use Direction::*;
-        match self {
-            North => 1,
-            East => 4,
-            South => 2,
-            West => 3,
-        }
-    }
-
-    fn next_point(&self, (x, y): Point) -> Point {
-        use Direction::*;
-        match self {
-            North => (x, y - 1),
-            East => (x + 1, y),
-            South => (x, y + 1),
-            West => (x - 1, y),
-        }
-    }
-}
-
 type Map = HashMap<Point, char>;
 
 struct MazeSim {
     machine: intcode::Machine,
     map: Map,
     pos: Point,
+}
+
+fn input_from_direction(dir: &Direction) -> i64 {
+    use Direction::*;
+    match dir {
+        North => 1,
+        East => 4,
+        South => 2,
+        West => 3,
+    }
 }
 
 impl MazeSim {
@@ -86,7 +39,7 @@ impl MazeSim {
     /// try to move in the given direction, return the character that was there (or is there if you can't move).
     fn try_move(&mut self, dir: Direction) -> char {
         let mut res = ' ';
-        if let Some(output) = self.machine.run_to_output(Some(dir.as_input())) {
+        if let Some(output) = self.machine.run_to_output(Some(input_from_direction(&dir))) {
             match output {
                 0 => {
                     self.map.insert(dir.next_point(self.pos), '#');
@@ -160,7 +113,7 @@ impl Aoc2020 for Day15 {
 
         // We only care about routes, throw away the walls
         let map: Map = map.into_iter().filter(|(_, v)| *v != '#').collect();
-        intcode::output_map(&map);
+        geometry::output_map(&map);
 
         let (&goal, _) = map.iter().find(|(_, &v)| v == 'O').unwrap();
 
