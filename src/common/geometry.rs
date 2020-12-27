@@ -1,13 +1,11 @@
 use std::fmt::{Debug, Display};
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug)]
 pub struct Point2D<T>(pub T, pub T);
 
 impl<T> Point2D<T> where T: Copy + Clone + Debug + Display {}
 
-pub type Point = (i64, i64);
-
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Direction {
     North,
     East,
@@ -54,8 +52,13 @@ impl Direction {
         }
     }
 
+    /// Don't use this
     pub fn rotate_cw_amount(&self, dir: i64) -> Self {
         Self::from((self.to_int() + if dir == 0 { 3 } else { 1 }) % 4)
+    }
+
+    pub fn rotate_times(&self, times: i64) -> Self {
+        Self::from((self.to_int() + times) % 4)
     }
 
     pub fn rotate(&self, acw: bool) -> Self {
@@ -68,11 +71,11 @@ impl Direction {
 
     pub fn next_point<P, T>(&self, p: P) -> P
     where
-        P: IntoXY<T>,
+        P: PointLike<T>,
         T: num::Integer + Copy,
     {
         use Direction::*;
-        let (x, y) = p.into_xy();
+        let (x, y) = p.get_xy();
         let (x, y) = match self {
             North => (x, y - T::one()),
             East => (x + T::one(), y),
@@ -118,44 +121,44 @@ impl MapFmt for i64 {
 
 use std::collections::HashMap;
 
-pub fn map_bounds<K: IntoXY<T>, V: MapFmt, T>(map: &HashMap<K, V>) -> (T, T, T, T)
+pub fn map_bounds<K: PointLike<T>, V: MapFmt, T>(map: &HashMap<K, V>) -> (T, T, T, T)
 where
     T: Ord + Copy,
 {
     (
         map.keys()
-            .map(IntoXY::into_xy)
+            .map(PointLike::get_xy)
             .min_by_key(|x| x.0)
             .unwrap()
             .0,
         map.keys()
-            .map(IntoXY::into_xy)
+            .map(PointLike::get_xy)
             .max_by_key(|x| x.0)
             .unwrap()
             .0,
         map.keys()
-            .map(IntoXY::into_xy)
+            .map(PointLike::get_xy)
             .min_by_key(|x| x.1)
             .unwrap()
             .1,
         map.keys()
-            .map(IntoXY::into_xy)
+            .map(PointLike::get_xy)
             .max_by_key(|x| x.1)
             .unwrap()
             .1,
     )
 }
 
-pub trait IntoXY<T> {
-    fn into_xy(&self) -> (T, T);
+pub trait PointLike<T> {
+    fn get_xy(&self) -> (T, T);
     fn from_xy(x: T, y: T) -> Self;
 }
 
-impl<T> IntoXY<T> for Point2D<T>
+impl<T> PointLike<T> for Point2D<T>
 where
     T: num::Integer + Copy,
 {
-    fn into_xy(&self) -> (T, T) {
+    fn get_xy(&self) -> (T, T) {
         let Self(x, y) = self;
         (*x, *y)
     }
@@ -165,11 +168,11 @@ where
     }
 }
 
-impl<T> IntoXY<T> for (T, T)
+impl<T> PointLike<T> for (T, T)
 where
     T: Copy,
 {
-    fn into_xy(&self) -> (T, T) {
+    fn get_xy(&self) -> (T, T) {
         let (x, y) = self;
         (*x, *y)
     }
@@ -182,7 +185,7 @@ where
 pub fn output_map<K, V: MapFmt, T>(map: &HashMap<K, V>)
 where
     T: num::Integer + Copy + std::iter::Step,
-    K: IntoXY<T> + Eq + core::hash::Hash,
+    K: PointLike<T> + Eq + core::hash::Hash,
 {
     let (x_min, x_max, y_min, y_max) = map_bounds(map);
 
