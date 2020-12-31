@@ -6,14 +6,18 @@ pub mod day_14;
 pub mod day_15;
 pub mod day_16;
 pub mod day_17;
+pub mod day_18;
 mod day_3;
 mod intcode;
 use crate::aoc_2020::Aoc2020;
 use crate::files::{read_lines, Res};
 use std::collections::HashMap;
+use std::time::Instant;
 
 pub fn main(day: Option<usize>) -> Res<()> {
     println!("Advent of code!!!");
+
+    let start = Instant::now();
 
     day_1::Day01::run_me_maybe(day)?;
     day_02::Day02::run_me_maybe(day)?;
@@ -36,6 +40,9 @@ pub fn main(day: Option<usize>) -> Res<()> {
     day_15::Day15::run_me_maybe(day)?;
     day_16::Day16::run_me_maybe(day)?;
     day_17::Day17::run_me_maybe(day)?;
+    day_18::Day18::run_me_maybe(day)?;
+
+    println!("Total time: {:?}", Instant::now() - start);
 
     Ok(())
 }

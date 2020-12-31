@@ -14,6 +14,12 @@ pub enum Direction {
 }
 
 impl Direction {
+    pub fn array() -> &'static [Self; 4] {
+        use Direction::*;
+        const ARRAY: [Direction; 4] = [North, East, South, West];
+        &ARRAY
+    }
+
     pub fn rotate_cw(&self) -> Self {
         use Direction::*;
         match self {
