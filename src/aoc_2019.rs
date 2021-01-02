@@ -7,6 +7,7 @@ pub mod day_15;
 pub mod day_16;
 pub mod day_17;
 pub mod day_18;
+pub mod day_19;
 mod day_3;
 mod intcode;
 use crate::aoc_2020::Aoc2020;
@@ -41,6 +42,7 @@ pub fn main(day: Option<usize>) -> Res<()> {
     day_16::Day16::run_me_maybe(day)?;
     day_17::Day17::run_me_maybe(day)?;
     day_18::Day18::run_me_maybe(day)?;
+    day_19::Day19::run_me_maybe(day)?;
 
     println!("Total time: {:?}", Instant::now() - start);
 
