@@ -77,8 +77,88 @@ impl Aoc2020 for Day18 {
         search(&keys_required, &distance_cache, '@', &keys)
     }
 
-    fn part_2(_input: &Self::Input) -> Self::Result2 {
-        18
+    fn part_2(input: &Self::Input) -> Self::Result2 {
+        let mut map: Vec<Vec<char>> = input.iter().cloned().collect();
+        let mut keys_required: HashMap<char, Bitset> = HashMap::new();
+        let mut distance_cache: HashMap<(char, char), i64> = HashMap::new();
+        let keys: HashSet<char> = map
+            .iter()
+            .flat_map(|r| r.iter().filter(|c| ('a'..='z').contains(*c)))
+            .cloned()
+            .collect();
+
+        let orig_starting_position = map
+            .iter()
+            .enumerate()
+            .filter_map(|(y, r)| {
+                r.iter()
+                    .enumerate()
+                    .find(|(_, c)| **c == '@')
+                    .map(|(x, _)| Point2D(x as i64, y as i64))
+            })
+            .next()
+            .unwrap();
+
+        {
+            let Point2D(x, y) = orig_starting_position;
+            let x = x as usize;
+            let y = y as usize;
+            map[y - 1][x - 1] = '@';
+            map[y - 1][x + 1] = char::from('@' as u8 - 1);
+            map[y + 1][x - 1] = char::from('@' as u8 - 2);
+            map[y + 1][x + 1] = char::from('@' as u8 - 3);
+            map[y][x - 1] = '#';
+            map[y][x + 1] = '#';
+            map[y - 1][x] = '#';
+            map[y + 1][x] = '#';
+        }
+        for i in 0..4 {
+            let s_sym = char::from('@' as u8 - i);
+            let starting_position = map
+                .iter()
+                .enumerate()
+                .filter_map(|(y, r)| {
+                    r.iter()
+                        .enumerate()
+                        .find(|(_, c)| **c == s_sym)
+                        .map(|(x, _)| Point2D(x as i64, y as i64))
+                })
+                .next()
+                .unwrap();
+            bfs(
+                &mut keys_required,
+                &mut distance_cache,
+                &map,
+                starting_position,
+                s_sym,
+                true,
+            );
+        }
+
+        for k in keys.iter() {
+            let starting_position = map
+                .iter()
+                .enumerate()
+                .filter_map(|(y, r)| {
+                    r.iter()
+                        .enumerate()
+                        .find(|(_, c)| **c == *k)
+                        .map(|(x, _)| Point2D(x as i64, y as i64))
+                })
+                .next()
+                .unwrap();
+
+            bfs(
+                &mut keys_required,
+                &mut distance_cache,
+                &map,
+                starting_position,
+                *k,
+                false,
+            );
+        }
+
+        search_4(&keys_required, &distance_cache, ['@', '?', '>', '='], &keys)
     }
 }
 
@@ -214,6 +294,94 @@ fn search(
                 k,
                 keys.set((k as u8 - 'a' as u8).into()),
                 distance + distance_cache[&(point, k)] as u64,
+                key_count,
+            ));
+        }
+
+        visited.insert((point, keys));
+    }
+
+    queue.peek().unwrap().distance
+}
+
+type Arr4 = [char; 4];
+
+#[derive(PartialEq, Copy, Clone, Eq, std::fmt::Debug)]
+struct HeapElem4 {
+    point: Arr4,
+    keys: Bitset,
+    distance: u64,
+    heuristic: u64,
+}
+
+fn create_he4(point: Arr4, keys: Bitset, distance: u64, key_count: u64) -> HeapElem4 {
+    // use the manhattan distance as a heuristic
+    let heuristic = key_count - keys.count();
+    HeapElem4 {
+        point,
+        keys,
+        distance,
+        heuristic,
+    }
+}
+
+impl Ord for HeapElem4 {
+    fn cmp(&self, other: &Self) -> Ordering {
+        (self.distance + self.heuristic)
+            .cmp(&(other.distance + other.heuristic))
+            .reverse()
+    }
+}
+
+impl PartialOrd for HeapElem4 {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+fn search_4(
+    required_keys: &HashMap<char, Bitset>,
+    distance_cache: &HashMap<(char, char), i64>,
+    start: Arr4,
+    all_keys: &HashSet<char>,
+) -> u64 {
+    let key_count = all_keys.len() as u64;
+    let mut queue: BinaryHeap<HeapElem4> = BinaryHeap::new();
+    let mut visited: HashSet<(Arr4, Bitset)> = HashSet::new();
+    queue.push(create_he4(start, Bitset::empty(), 0, key_count));
+
+    while queue.peek().unwrap().keys.count() != key_count {
+        let HeapElem4 {
+            point,
+            keys,
+            distance,
+            heuristic: _,
+        } = queue.pop().unwrap();
+
+        if visited.contains(&(point, keys)) {
+            continue;
+        }
+
+        for &k in all_keys.iter() {
+            if keys.contains((k as u8 - 'a' as u8).into()) {
+                // visited in this route
+                continue;
+            }
+            if !keys.contains_all(required_keys[&k]) {
+                continue;
+            }
+            let (i, d) = point
+                .iter()
+                .enumerate()
+                .filter_map(|(i, s)| distance_cache.get(&(*s, k)).map(|d| (i, d)))
+                .next()
+                .unwrap();
+            let mut new_point = point.clone();
+            new_point[i] = k;
+            queue.push(create_he4(
+                new_point,
+                keys.set((k as u8 - 'a' as u8).into()),
+                distance + *d as u64,
                 key_count,
             ));
         }
