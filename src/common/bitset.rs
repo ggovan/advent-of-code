@@ -11,7 +11,7 @@ impl Bitset {
     }
 
     pub fn clear(&self, position: usize) -> Self {
-        Self(self.0 & ((0 - 1) ^ (1 << position)))
+        Self(self.0 & (!0 ^ (1 << position)))
     }
 
     pub fn count(&self) -> u64 {
