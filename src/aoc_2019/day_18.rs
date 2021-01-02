@@ -1,9 +1,9 @@
 use crate::aoc_2020::Aoc2020;
 use crate::common::bitset::Bitset;
 use crate::common::geometry::{Direction, Point2D};
+use crate::common::search::{search, HeapElem as ExHeapElem};
 use crate::files::Res;
-use std::cmp::{Eq, Ordering, PartialEq};
-use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fs::read_to_string;
 
 pub struct Day18;
@@ -75,7 +75,33 @@ impl Aoc2020 for Day18 {
             );
         }
 
-        search(&keys_required, &distance_cache, b'@', &keys)
+        let key_count = keys.len() as u64;
+
+        let dc = &distance_cache;
+        let kr = &keys_required;
+
+        let start: (Bitset, u8) = (Bitset::empty(), b'@');
+        search(
+            start,
+            |(collected, _)| collected.count() == key_count,
+            |(collected, point), distance| {
+                keys.iter().filter_map(move |&k| {
+                    if collected.contains((k - b'a').into()) {
+                        // visited in this route
+                        return None;
+                    }
+                    if !collected.contains_all(kr[&k]) {
+                        return None;
+                    }
+                    Some(ExHeapElem {
+                        elem: (collected.set((k - b'a').into()), k),
+                        distance: distance + dc[&(point, k)] as u64,
+                        heuristic: key_count - collected.count(),
+                    })
+                })
+            },
+        )
+        .1
     }
 
     fn part_2(input: &Self::Input) -> Self::Result2 {
@@ -159,12 +185,41 @@ impl Aoc2020 for Day18 {
             );
         }
 
-        search_4(
-            &keys_required,
-            &distance_cache,
-            [b'@', b'?', b'>', b'='],
-            &keys,
+        let key_count = keys.len() as u64;
+
+        let dc = &distance_cache;
+        let kr = &keys_required;
+
+        let start: (Bitset, [u8; 4]) = (Bitset::empty(), [b'@', b'?', b'>', b'=']);
+        search(
+            start,
+            |(collected, _)| collected.count() == key_count,
+            |(collected, points), distance| {
+                keys.iter().filter_map(move |&k| {
+                    if collected.contains((k - b'a').into()) {
+                        // visited in this route
+                        return None;
+                    }
+                    if !collected.contains_all(kr[&k]) {
+                        return None;
+                    }
+                    let (i, d) = points
+                        .iter()
+                        .enumerate()
+                        .filter_map(|(i, s)| dc.get(&(*s, k)).map(|d| (i, d)))
+                        .next()
+                        .unwrap();
+                    let mut new_point = points.clone();
+                    new_point[i] = k;
+                    Some(ExHeapElem {
+                        elem: (collected.set((k - b'a').into()), new_point),
+                        distance: distance + *d as u64,
+                        heuristic: key_count - collected.count(),
+                    })
+                })
+            },
         )
+        .1
     }
 }
 
@@ -214,186 +269,4 @@ fn bfs(
             queue.push_back((pos, new_keys, steps + 1))
         }
     }
-}
-
-// It's a graph where the nodes are {keys}.
-// We want to get a path from {} to {ALL}
-// But actually, it's ({keys}, location)
-// Can we do an A*?
-// I don't think that there's an admissible heuristic,
-// - actually, just take the number of things still to visit
-// - maybe the shortest distance between any things, or the longest of the shortest for each key
-// So just do djikstras?
-
-// ({A,B,C}, C) and ({C,B,A}, C) are the same
-// ({A,B,C,D}, C) and ({C,B,A}, C) are separate
-//
-
-// There is an edge (C->D)
-
-/// A point with a distance, and heuristic for use in A*
-#[derive(PartialEq, Copy, Clone, Eq, std::fmt::Debug)]
-struct HeapElem {
-    point: u8,
-    keys: Bitset,
-    distance: u64,
-    heuristic: u64,
-}
-
-fn create_he(point: u8, keys: Bitset, distance: u64, key_count: u64) -> HeapElem {
-    // use the manhattan distance as a heuristic
-    let heuristic = key_count - keys.count();
-    HeapElem {
-        point,
-        keys,
-        distance,
-        heuristic,
-    }
-}
-
-impl Ord for HeapElem {
-    fn cmp(&self, other: &Self) -> Ordering {
-        (self.distance + self.heuristic)
-            .cmp(&(other.distance + other.heuristic))
-            .reverse()
-    }
-}
-
-impl PartialOrd for HeapElem {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-fn search(
-    required_keys: &HashMap<u8, Bitset>,
-    distance_cache: &HashMap<(u8, u8), i64>,
-    start: u8,
-    all_keys: &HashSet<u8>,
-) -> u64 {
-    let key_count = all_keys.len() as u64;
-    let mut queue: BinaryHeap<HeapElem> = BinaryHeap::new();
-    let mut visited: HashSet<(u8, Bitset)> = HashSet::new();
-    queue.push(create_he(start, Bitset::empty(), 0, key_count));
-
-    while queue.peek().unwrap().keys.count() != key_count {
-        let HeapElem {
-            point,
-            keys,
-            distance,
-            heuristic: _,
-        } = queue.pop().unwrap();
-
-        if visited.contains(&(point, keys)) {
-            continue;
-        }
-
-        for &k in all_keys.iter() {
-            if keys.contains((k - b'a').into()) {
-                // visited in this route
-                continue;
-            }
-            if !keys.contains_all(required_keys[&k]) {
-                continue;
-            }
-            queue.push(create_he(
-                k,
-                keys.set((k - b'a').into()),
-                distance + distance_cache[&(point, k)] as u64,
-                key_count,
-            ));
-        }
-
-        visited.insert((point, keys));
-    }
-
-    queue.peek().unwrap().distance
-}
-
-type Arr4 = [u8; 4];
-
-#[derive(PartialEq, Copy, Clone, Eq, std::fmt::Debug)]
-struct HeapElem4 {
-    point: Arr4,
-    keys: Bitset,
-    distance: u64,
-    heuristic: u64,
-}
-
-fn create_he4(point: Arr4, keys: Bitset, distance: u64, key_count: u64) -> HeapElem4 {
-    // use the manhattan distance as a heuristic
-    let heuristic = key_count - keys.count();
-    HeapElem4 {
-        point,
-        keys,
-        distance,
-        heuristic,
-    }
-}
-
-impl Ord for HeapElem4 {
-    fn cmp(&self, other: &Self) -> Ordering {
-        (self.distance + self.heuristic)
-            .cmp(&(other.distance + other.heuristic))
-            .reverse()
-    }
-}
-
-impl PartialOrd for HeapElem4 {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-fn search_4(
-    required_keys: &HashMap<u8, Bitset>,
-    distance_cache: &HashMap<(u8, u8), i64>,
-    start: Arr4,
-    all_keys: &HashSet<u8>,
-) -> u64 {
-    let key_count = all_keys.len() as u64;
-    let mut queue: BinaryHeap<HeapElem4> = BinaryHeap::new();
-    let mut visited: HashSet<(Arr4, Bitset)> = HashSet::new();
-    queue.push(create_he4(start, Bitset::empty(), 0, key_count));
-
-    while queue.peek().unwrap().keys.count() != key_count {
-        let HeapElem4 {
-            point,
-            keys,
-            distance,
-            heuristic: _,
-        } = queue.pop().unwrap();
-
-        if visited.contains(&(point, keys)) {
-            continue;
-        }
-
-        for &k in all_keys.iter() {
-            if keys.contains((k - b'a').into()) {
-                // visited in this route
-                continue;
-            }
-            if !keys.contains_all(required_keys[&k]) {
-                continue;
-            }
-            let (i, d) = point
-                .iter()
-                .enumerate()
-                .filter_map(|(i, s)| distance_cache.get(&(*s, k)).map(|d| (i, d)))
-                .next()
-                .unwrap();
-            let mut new_point = point;
-            new_point[i] = k;
-            queue.push(create_he4(
-                new_point,
-                keys.set((k - b'a').into()),
-                distance + *d as u64,
-                key_count,
-            ));
-        }
-
-        visited.insert((point, keys));
-    }
-
-    queue.peek().unwrap().distance
 }
