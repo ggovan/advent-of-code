@@ -20,7 +20,7 @@ impl Aoc2020 for Day09 {
     }
 
     fn part_1(input: &Self::Input) -> Self::Result1 {
-        has_match(input, 25)
+        has_match::<25>(input)
     }
 
     fn part_2(input: &Self::Input) -> Self::Result2 {
@@ -28,22 +28,22 @@ impl Aoc2020 for Day09 {
     }
 }
 
-fn has_match(ns: &[i64], preamble: usize) -> i64 {
-    assert!(preamble <= 25);
-    let mut thing: Vec<[i64; 24]> = Vec::with_capacity(ns.len());
+fn has_match<const N: usize>(ns: &[i64]) -> i64 {
+    // assert!(preamble <= 25);
+    let mut thing: Vec<[i64; N]> = Vec::with_capacity(ns.len());
 
     // probably don't need to compute EVERYTHING ahead of time
     for i in 0..(ns.len() - 1) {
-        let mut arr = [0; 24];
-        for j in (i + 1)..cmp::min(i + preamble, ns.len()) {
+        let mut arr = [0; N];
+        for j in (i + 1)..cmp::min(i + N, ns.len()) {
             arr[j - i - 1] = ns[i] + ns[j]
         }
         thing.push(arr);
     }
 
-    'outer: for (i, &ni) in ns.iter().enumerate().skip(preamble) {
+    'outer: for (i, &ni) in ns.iter().enumerate().skip(N) {
         // clippy prefered this line to: `for j in (i - preamble)..(i - 1)`
-        for (j, &tj) in thing.iter().enumerate().take(i - 1).skip(i - preamble) {
+        for (j, &tj) in thing.iter().enumerate().take(i - 1).skip(i - N) {
             let t = tj;
             for &tk in t.iter().take(i - j - 1) {
                 if ni == tk {
@@ -92,7 +92,7 @@ mod tests {
             35, 20, 15, 25, 47, 40, 62, 55, 65, 95, 102, 117, 150, 182, 127, 219, 299, 277, 309,
             576,
         ];
-        assert_eq!(has_match(&input, 5), 127);
+        assert_eq!(has_match::<5>(&input), 127);
     }
 
     #[test]
