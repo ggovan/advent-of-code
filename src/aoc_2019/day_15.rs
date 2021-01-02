@@ -1,9 +1,10 @@
 use super::intcode;
 use crate::aoc_2020::Aoc2020;
 use crate::common::geometry::{self, Direction};
+use crate::common::search::{search, HeapElem};
 use crate::files::Res;
-use std::collections::{BinaryHeap, HashMap, HashSet};
-use std::{cmp::Ordering, collections::VecDeque};
+use std::collections::VecDeque;
+use std::collections::{HashMap, HashSet};
 
 pub struct Day15;
 
@@ -113,11 +114,35 @@ impl Aoc2020 for Day15 {
 
         // We only care about routes, throw away the walls
         let map: Map = map.into_iter().filter(|(_, v)| *v != '#').collect();
+        let map_ref = &map;
         geometry::output_map(&map);
 
         let (&goal, _) = map.iter().find(|(_, &v)| v == 'O').unwrap();
 
-        search(&map, (0, 0), goal)
+        let start: (i64, i64) = (0, 0);
+
+        search(
+            start,
+            |p| *p == goal,
+            |p, distance| {
+                Direction::array()
+                    .iter()
+                    .map(move |d| d.next_point(p))
+                    .filter_map(move |successor| {
+                        if !map_ref.contains_key(&successor) {
+                            // not on the path
+                            return None;
+                        }
+                        Some(HeapElem {
+                            elem: successor,
+                            distance: distance + 1,
+                            heuristic: ((goal.0 - successor.0).abs() + (goal.1 - successor.1).abs())
+                                as u64,
+                        })
+                    })
+            },
+        )
+        .1 as i64
     }
 
     /// Do two maze explorations (one left and one right, to ensure that it's fully explored),
@@ -133,75 +158,6 @@ impl Aoc2020 for Day15 {
 
         depth(&map, goal)
     }
-}
-
-/// A point with a distance, and heuristic for use in A*
-#[derive(PartialEq, Copy, Clone, Eq)]
-struct HeapElem {
-    point: Point,
-    dist: i64,
-    heuristic: i64,
-}
-
-fn create_he(point: Point, dist: i64, (gx, gy): &Point) -> HeapElem {
-    // use the manhattan distance as a heuristic
-    let heuristic = gx.abs() + gy.abs();
-    HeapElem {
-        point,
-        dist,
-        heuristic,
-    }
-}
-
-impl Ord for HeapElem {
-    fn cmp(&self, other: &Self) -> Ordering {
-        (self.dist + self.heuristic)
-            .cmp(&(other.dist + other.heuristic))
-            .reverse()
-    }
-}
-
-impl PartialOrd for HeapElem {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-/// Uses A* to find the min distance to the goal.
-/// Turns out that that doesn't matter, as I got the same answer when using a max instead of min heap.
-/// It might make it more efficient, but no point since the maze is much slower.
-/// BFS would have been sufficient, but I will keep this for prosperity.
-fn search(map: &Map, start: Point, goal: Point) -> i64 {
-    let mut queue: BinaryHeap<HeapElem> = BinaryHeap::new();
-    let mut visited: HashSet<Point> = HashSet::new();
-    queue.push(create_he(start, 0, &goal));
-
-    while queue.peek().unwrap().point != goal {
-        let HeapElem {
-            point,
-            dist,
-            heuristic: _,
-        } = queue.pop().unwrap();
-        if visited.contains(&point) {
-            continue;
-        }
-        let (x, y) = point;
-        let successors = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)];
-        for successor in successors.iter() {
-            if !map.contains_key(successor) {
-                // not on the path
-                continue;
-            }
-            if visited.contains(successor) {
-                continue;
-            }
-            queue.push(create_he(*successor, dist + 1, &goal));
-        }
-
-        visited.insert((x, y));
-    }
-
-    queue.peek().unwrap().dist
 }
 
 fn depth(map: &Map, start: Point) -> i64 {
