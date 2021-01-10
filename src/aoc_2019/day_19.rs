@@ -37,28 +37,35 @@ impl Aoc2020 for Day19 {
             machine.run_to_output(None) == Some(1)
         };
 
-        for y in 99.. {
+        for y in 100.. {
             let mut seen_x = false;
 
             for x in min_x.. {
                 let in_beam = check(x, y);
                 if !seen_x && in_beam {
+                    // in the next line we can start from this x
                     seen_x = true;
                     min_x = x
                 }
                 if seen_x && !in_beam {
+                    // at the end of the beam, go to next line
                     break;
                 }
-
-                let check_x = check(x + 99, y);
-                let check_y = check(x, y + 99);
-
-                if check_x && check_y {
-                    return x * 10000 + y;
+                if !in_beam {
+                    // we're not in the beam yet
+                    continue;
                 }
+
+                let check_top_right = check(x + 99, y - 99);
+
+                if check_top_right {
+                    return x * 10000 + y - 99;
+                }
+
+                break;
             }
         }
 
-        unreachable!();
+        unreachable!("No solution found");
     }
 }

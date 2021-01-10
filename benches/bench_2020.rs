@@ -48,6 +48,7 @@ pub fn criterion_benchmark_2019(c: &mut Criterion) {
     bench::<aoc_2019::day_17::Day17>(c, 2019);
     bench::<aoc_2019::day_18::Day18>(c, 2019);
     bench::<aoc_2019::day_19::Day19>(c, 2019);
+    bench::<aoc_2019::day_20::Day20>(c, 2019);
 }
 
 criterion_group!(benches, criterion_benchmark_2020, criterion_benchmark_2019);
