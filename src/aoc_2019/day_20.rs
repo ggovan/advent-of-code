@@ -1,15 +1,16 @@
 use crate::aoc_2020::Aoc2020;
 use crate::common::geometry::Direction;
 use crate::common::search::{search, HeapElem};
-use crate::common::{time, time_block};
 use crate::files::Res;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fs::read_to_string;
 
+/// Note that most of the time here is spent in the "setup" phase.
+/// Moving these to the `input` function would approx. half the total time taken
 pub struct Day20;
 
 impl Aoc2020 for Day20 {
-    type Input = Vec<Vec<MapElem>>;
+    type Input = HashMap<Portal, Vec<(Portal, i64)>>;
     type Result1 = u64;
     type Result2 = u64;
 
@@ -18,7 +19,7 @@ impl Aoc2020 for Day20 {
     }
     fn load() -> Res<Self::Input> {
         let input = read_to_string("data/2019/day_20.in")?;
-        Ok(input
+        let mut input = input
             .lines()
             .map(|l| {
                 l.bytes()
@@ -31,21 +32,16 @@ impl Aoc2020 for Day20 {
                     })
                     .collect()
             })
-            .collect())
+            .collect::<Vec<_>>();
+        setup_portals(&mut input);
+        let graph = setup_graph(&input);
+        Ok(graph)
     }
 
     /// Simply process the input, then find all the portals reachable from other portals, then do an A*.
     fn part_1(input: &Self::Input) -> Self::Result1 {
-        let mut input = input.to_owned();
-        let (_, t) = time(|| setup_portals(&mut input));
-        println!("    Setup portals: {:?}", t);
-        // setup_portals(&mut input);
-        let map = &input;
-        let (graph, t) = time(|| setup_graph(map));
-        println!("    Setup graph: {:?}", t);
-        let graph = &graph;
+        let graph = &input;
 
-        let _time = time_block("    Performing search");
         search(
             Portal('A', 'A', false),
             |p| matches!(p, Portal('Z', 'Z', _)),
@@ -70,12 +66,8 @@ impl Aoc2020 for Day20 {
     /// But this time you need to keep track of the maze depth too.
     /// It will panic after going 50 mazes deep, just to stop an infinite search.
     fn part_2(input: &Self::Input) -> Self::Result2 {
-        let mut input = input.to_owned();
-        setup_portals(&mut input);
-        let map = &input;
-        let graph = &setup_graph(map);
+        let graph = &input;
 
-        let _time = time_block("    Performing search");
         search(
             (Portal('A', 'A', false), 0),
             |p| matches!(p, (Portal('Z', 'Z', _), -1)),
