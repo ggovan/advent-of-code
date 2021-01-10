@@ -49,39 +49,41 @@ pub use day_25::Day25;
 mod day_1;
 pub use day_1::Day01;
 
+use crate::common::time;
 use crate::files::Res;
 use std::fmt::Display;
-use std::time::{Duration, Instant};
 
 pub fn run_all(day: Option<usize>) -> Res<()> {
-    let start = Instant::now();
-    Day01::run_me_maybe(day)?;
-    Day02::run_me_maybe(day)?;
-    Day03::run_me_maybe(day)?;
-    Day04::run_me_maybe(day)?;
-    Day05::run_me_maybe(day)?;
-    Day06::run_me_maybe(day)?;
-    Day07::run_me_maybe(day)?;
-    Day08::run_me_maybe(day)?;
-    Day09::run_me_maybe(day)?;
-    Day10::run_me_maybe(day)?;
-    Day11::run_me_maybe(day)?;
-    Day12::run_me_maybe(day)?;
-    Day13::run_me_maybe(day)?;
-    Day14::run_me_maybe(day)?;
-    Day15::run_me_maybe(day)?;
-    Day16::run_me_maybe(day)?;
-    Day17::run_me_maybe(day)?;
-    Day18::run_me_maybe(day)?;
-    Day19::run_me_maybe(day)?;
-    Day20::run_me_maybe(day)?;
-    Day21::run_me_maybe(day)?;
-    Day22::run_me_maybe(day)?;
-    Day23::run_me_maybe(day)?;
-    Day24::run_me_maybe(day)?;
-    Day25::run_me_maybe(day)?;
+    let (_, t): (Res<()>, _) = time(|| {
+        Day01::run_me_maybe(day)?;
+        Day02::run_me_maybe(day)?;
+        Day03::run_me_maybe(day)?;
+        Day04::run_me_maybe(day)?;
+        Day05::run_me_maybe(day)?;
+        Day06::run_me_maybe(day)?;
+        Day07::run_me_maybe(day)?;
+        Day08::run_me_maybe(day)?;
+        Day09::run_me_maybe(day)?;
+        Day10::run_me_maybe(day)?;
+        Day11::run_me_maybe(day)?;
+        Day12::run_me_maybe(day)?;
+        Day13::run_me_maybe(day)?;
+        Day14::run_me_maybe(day)?;
+        Day15::run_me_maybe(day)?;
+        Day16::run_me_maybe(day)?;
+        Day17::run_me_maybe(day)?;
+        Day18::run_me_maybe(day)?;
+        Day19::run_me_maybe(day)?;
+        Day20::run_me_maybe(day)?;
+        Day21::run_me_maybe(day)?;
+        Day22::run_me_maybe(day)?;
+        Day23::run_me_maybe(day)?;
+        Day24::run_me_maybe(day)?;
+        Day25::run_me_maybe(day)?;
+        Ok(())
+    });
 
-    println!("Total time: {:?}", Instant::now() - start);
+    println!("Total time: {:?}", t);
 
     Ok(())
 }
@@ -98,12 +100,6 @@ pub trait Aoc2020 {
 
     fn run() -> Res<()> {
         println!("Day {}", Self::day());
-
-        fn time<T>(f: impl Fn() -> T) -> (T, Duration) {
-            let start = Instant::now();
-            let res = f();
-            (res, Instant::now() - start)
-        }
 
         let (input, t) = time(Self::load);
         let input = input?;

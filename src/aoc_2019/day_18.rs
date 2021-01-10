@@ -209,6 +209,7 @@ impl Aoc2020 for Day18 {
                         .filter_map(|(i, s)| dc.get(&(*s, k)).map(|d| (i, d)))
                         .next()
                         .unwrap();
+                    #[allow(clippy::clone_on_copy)]
                     let mut new_point = points.clone();
                     new_point[i] = k;
                     Some(ExHeapElem {

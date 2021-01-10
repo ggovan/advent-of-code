@@ -1,6 +1,7 @@
 use crate::aoc_2020::Aoc2020;
 use crate::common::geometry::Direction;
 use crate::common::search::{search, HeapElem};
+use crate::common::{time, time_block};
 use crate::files::Res;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fs::read_to_string;
@@ -33,12 +34,18 @@ impl Aoc2020 for Day20 {
             .collect())
     }
 
+    /// Simply process the input, then find all the portals reachable from other portals, then do an A*.
     fn part_1(input: &Self::Input) -> Self::Result1 {
         let mut input = input.to_owned();
-        setup_portals(&mut input);
+        let (_, t) = time(|| setup_portals(&mut input));
+        println!("    Setup portals: {:?}", t);
+        // setup_portals(&mut input);
         let map = &input;
-        let graph = setup_graph(map);
+        let (graph, t) = time(|| setup_graph(map));
+        println!("    Setup graph: {:?}", t);
+        let graph = &graph;
 
+        let _time = time_block("    Performing search");
         search(
             Portal('A', 'A', false),
             |p| matches!(p, Portal('Z', 'Z', _)),
@@ -59,17 +66,39 @@ impl Aoc2020 for Day20 {
         .1 - 1
     }
 
-    fn part_2(_input: &Self::Input) -> Self::Result2 {
-        20
+    /// Simply process the input, then find all the portals reachable from other portals, then do an A*.
+    /// But this time you need to keep track of the maze depth too.
+    /// It will panic after going 50 mazes deep, just to stop an infinite search.
+    fn part_2(input: &Self::Input) -> Self::Result2 {
+        let mut input = input.to_owned();
+        setup_portals(&mut input);
+        let map = &input;
+        let graph = &setup_graph(map);
+
+        let _time = time_block("    Performing search");
+        search(
+            (Portal('A', 'A', false), 0),
+            |p| matches!(p, (Portal('Z', 'Z', _), -1)),
+            move |(portal, depth), distance| {
+                graph[&portal]
+                    .iter()
+                    .map(move |(p, d)| HeapElem {
+                        elem: (Portal(p.0, p.1, !p.2), depth + if p.2 { 1 } else { -1 }),
+                        distance: *d as u64 + distance + 1,
+                        heuristic: 0,
+                    })
+                    .filter(|he| he.elem.1 >= -1)
+                    .filter(|he| he.elem.0 .0 != 'A' || he.elem.0 .1 != 'A')
+                    .filter(|he| !(he.elem.0 .0 == 'Z' && he.elem.0 .1 == 'Z') || he.elem.1 == -1)
+                    // since it's recursive, just stop at 50 mazes deep
+                    .filter(|he| he.elem.1 < 50)
+            },
+        )
+        .1 - 1
     }
 }
 
-struct BfsIterator<'a, T> {
-    visited: HashSet<T>,
-    queue: VecDeque<T>,
-    map: &'a [Vec<MapElem>],
-}
-
+/// Setup a graph of `Portal -> [(Portal, distance)]`
 fn setup_graph(map: &[Vec<MapElem>]) -> HashMap<Portal, Vec<(Portal, i64)>> {
     let mut graph = HashMap::new();
 
@@ -124,7 +153,6 @@ fn setup_graph(map: &[Vec<MapElem>]) -> HashMap<Portal, Vec<(Portal, i64)>> {
         }
     }
 
-    // graph.iter().for_each(|(k, v)| println!("{:?}: {:?}", k, v));
     graph
 }
 
@@ -137,6 +165,7 @@ pub enum MapElem {
     Portal(Portal),
 }
 
+/// two chars acting as the portal name, then an is_inside bool
 #[derive(Copy, Clone, Hash, Eq, PartialEq)]
 pub struct Portal(char, char, bool);
 
@@ -150,26 +179,46 @@ impl std::fmt::Debug for Portal {
 }
 
 impl MapElem {
-    fn create_portal(p1: u8, p2: u8, portals: &HashSet<Portal>) -> Portal {
+    fn create_portal(p1: u8, p2: u8, is_inside: bool) -> Portal {
         let p1 = p1 as char;
         let p2 = p2 as char;
         if p1 < p2 {
-            Portal(p1, p2, portals.contains(&Portal(p1, p2, false)))
+            Portal(p1, p2, is_inside)
         } else {
-            Portal(p2, p1, portals.contains(&Portal(p2, p1, false)))
+            Portal(p2, p1, is_inside)
         }
     }
 }
 
+/// Replace pairs of "portal parts" with portals, e.g.
+/// `'A','B','.' -> ' ',"AB",'.'`
+/// and marks the portal as "inner" or "outer".
 fn setup_portals(map: &mut [Vec<MapElem>]) {
     let row_length = map[0].len();
     let mut portals = HashSet::new();
+    let mut is_inside_y = 0;
     for y in 0..map.len() {
+        let mut is_inside_x = 0;
+        if is_inside_y == 0
+            && map[y]
+                .iter()
+                .any(|p| matches!(p, MapElem::Wall | MapElem::Path))
+        {
+            is_inside_y = 1;
+        }
+        if is_inside_y == 1
+            && map[y]
+                .iter()
+                .all(|p| !matches!(p, MapElem::Wall | MapElem::Path))
+        {
+            is_inside_y = 2;
+        }
         for x in 0..row_length {
             match map[y][x] {
                 MapElem::PortalPart(p1) => {
                     if let Some(MapElem::PortalPart(p2)) = map[y].get(x + 1) {
-                        let new_portal = MapElem::create_portal(p1, *p2, &portals);
+                        let new_portal =
+                            MapElem::create_portal(p1, *p2, (1..=2).contains(&is_inside_x));
                         portals.insert(new_portal);
                         let (wall, portal) = if let Some(MapElem::Path) = map[y].get(x + 2) {
                             (x, x + 1)
@@ -181,7 +230,7 @@ fn setup_portals(map: &mut [Vec<MapElem>]) {
                         map[y][wall] = MapElem::Wall;
                         map[y][portal] = MapElem::Portal(new_portal);
                     } else if let Some(MapElem::PortalPart(p2)) = map.get(y + 1).map(|r| r[x]) {
-                        let new_portal = MapElem::create_portal(p1, p2, &portals);
+                        let new_portal = MapElem::create_portal(p1, p2, is_inside_y == 1);
                         portals.insert(new_portal);
                         let (wall, portal) =
                             if let Some(MapElem::Path) = map.get(y + 2).map(|r| r[x]) {
@@ -194,6 +243,14 @@ fn setup_portals(map: &mut [Vec<MapElem>]) {
                         map[wall][x] = MapElem::Wall;
                         map[portal][x] = MapElem::Portal(new_portal);
                     }
+                }
+
+                MapElem::Wall | MapElem::Path if is_inside_x == 0 || is_inside_x == 2 => {
+                    is_inside_x += 1;
+                }
+
+                MapElem::Space if is_inside_x == 1 => {
+                    is_inside_x += 1;
                 }
 
                 _ => {}

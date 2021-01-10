@@ -12,41 +12,43 @@ pub mod day_20;
 mod day_3;
 mod intcode;
 use crate::aoc_2020::Aoc2020;
+use crate::common::time;
 use crate::files::{read_lines, Res};
 use std::collections::HashMap;
-use std::time::Instant;
 
 pub fn main(day: Option<usize>) -> Res<()> {
     println!("Advent of code!!!");
 
-    let start = Instant::now();
+    let (_, t): (Res<()>, _) = time(|| {
+        day_1::Day01::run_me_maybe(day)?;
+        day_02::Day02::run_me_maybe(day)?;
 
-    day_1::Day01::run_me_maybe(day)?;
-    day_02::Day02::run_me_maybe(day)?;
+        if day.is_none() {
+            day_3::day_3()?;
+            day_4();
+            intcode::day_5()?;
+            day_6()?;
+            intcode::day_7()?;
+            day_8()?;
+            intcode::day_9()?;
+            day_10::day_10()?;
+            intcode::day_11()?;
+            day_12::day_12()?;
+            intcode::day_13()?;
+        }
 
-    if day.is_none() {
-        day_3::day_3()?;
-        day_4();
-        intcode::day_5()?;
-        day_6()?;
-        intcode::day_7()?;
-        day_8()?;
-        intcode::day_9()?;
-        day_10::day_10()?;
-        intcode::day_11()?;
-        day_12::day_12()?;
-        intcode::day_13()?;
-    }
+        day_14::Day14::run_me_maybe(day)?;
+        day_15::Day15::run_me_maybe(day)?;
+        day_16::Day16::run_me_maybe(day)?;
+        day_17::Day17::run_me_maybe(day)?;
+        day_18::Day18::run_me_maybe(day)?;
+        day_19::Day19::run_me_maybe(day)?;
+        day_20::Day20::run_me_maybe(day)?;
 
-    day_14::Day14::run_me_maybe(day)?;
-    day_15::Day15::run_me_maybe(day)?;
-    day_16::Day16::run_me_maybe(day)?;
-    day_17::Day17::run_me_maybe(day)?;
-    day_18::Day18::run_me_maybe(day)?;
-    day_19::Day19::run_me_maybe(day)?;
-    day_20::Day20::run_me_maybe(day)?;
+        Ok(())
+    });
 
-    println!("Total time: {:?}", Instant::now() - start);
+    println!("Total time: {:?}", t);
 
     Ok(())
 }
