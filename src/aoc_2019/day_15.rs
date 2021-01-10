@@ -125,21 +125,19 @@ impl Aoc2020 for Day15 {
             start,
             |p| *p == goal,
             |p, distance| {
-                Direction::array()
-                    .iter()
-                    .map(move |d| d.next_point(p))
-                    .filter_map(move |successor| {
-                        if !map_ref.contains_key(&successor) {
-                            // not on the path
-                            return None;
-                        }
-                        Some(HeapElem {
-                            elem: successor,
-                            distance: distance + 1,
-                            heuristic: ((goal.0 - successor.0).abs() + (goal.1 - successor.1).abs())
-                                as u64,
-                        })
+                Direction::array().iter().filter_map(move |direction| {
+                    let successor = direction.next_point(p);
+                    if !map_ref.contains_key(&successor) {
+                        // not on the path
+                        return None;
+                    }
+                    Some(HeapElem {
+                        elem: successor,
+                        distance: distance + 1,
+                        heuristic: ((goal.0 - successor.0).abs() + (goal.1 - successor.1).abs())
+                            as u64,
                     })
+                })
             },
         )
         .1 as i64
