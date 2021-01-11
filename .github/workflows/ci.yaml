@@ -11,6 +11,6 @@ jobs:
       - name: Fetch
         run: cargo fetch --verbose
       - name: Build
-        run: cargo build --all-targets --verbose
+        run: cargo build --bins --tests --verbose
       - name: Test
         run: cargo test --verbose

@@ -6,7 +6,7 @@ phases:
       - cargo fetch
   build:
     commands:
-      - cargo build --all-targets
+      - cargo build --bins --tests
       - cargo test
   post_build:
     commands:
