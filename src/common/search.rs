@@ -27,8 +27,9 @@ impl<E: Eq> PartialOrd for HeapElem<E> {
 pub fn search<E: Hash + Eq + Clone, Iter: Iterator<Item = HeapElem<E>>>(
     start: E,
     is_goal: impl Fn(&E) -> bool,
-    successors: impl Fn(E, u64) -> Iter,
+    mut successors: impl FnMut(E, u64) -> Iter,
 ) -> (E, u64) {
+    let _time = super::time_block("    search");
     let mut queue: BinaryHeap<HeapElem<E>> = BinaryHeap::new();
     let mut visited: HashSet<E> = HashSet::new();
     queue.push(HeapElem {
