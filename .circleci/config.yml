@@ -1,0 +1,10 @@
+jobs:
+  build:
+    docker:
+      - image: cimg/rust:1.49.0
+    steps:
+      - checkout
+      - run: cargo fetch
+      - run: cargo build --bins --tests
+      - run: cargo test
+      
