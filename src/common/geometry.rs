@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt::{Debug, Display};
 
 #[derive(PartialEq, Eq, Hash, Copy, Clone, Debug)]
@@ -81,6 +82,7 @@ impl Direction {
         T: num::Integer + Copy,
     {
         use Direction::*;
+
         let (x, y) = p.get_xy();
         let (x, y) = match self {
             North => (x, y - T::one()),
@@ -92,6 +94,7 @@ impl Direction {
     }
 }
 
+/// Transforms an element into a char to be displayed in a graphical map.
 pub trait MapFmt {
     fn out(&self) -> char;
 }
@@ -124,8 +127,6 @@ impl MapFmt for i64 {
         }
     }
 }
-
-use std::collections::HashMap;
 
 pub fn map_bounds<K: PointLike<T>, V: MapFmt, T>(map: &HashMap<K, V>) -> (T, T, T, T)
 where
