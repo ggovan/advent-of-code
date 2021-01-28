@@ -15,3 +15,19 @@ jobs:
         run: cargo build --bins --tests --verbose
       - name: Test
         run: cargo test --verbose
+
+  push_to_registry:
+    needs: build
+    name: Push Docker image to GitHub Packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Push to GitHub Packages
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: ggovan/advent-of-code/advent-of-code
+          tag_with_ref: true
