@@ -30,6 +30,7 @@ COPY aoc-2020 aoc-2020/
 COPY aoc-2019 aoc-2019/
 COPY src src/
 RUN cargo install --target x86_64-unknown-linux-musl --path .
+RUN strip /usr/local/cargo/bin/2019 /usr/local/cargo/bin/2020 
 
 ### executor ###
 FROM scratch
