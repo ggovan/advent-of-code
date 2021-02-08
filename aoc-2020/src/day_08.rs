@@ -95,7 +95,7 @@ impl FromStr for Instruction {
             "acc" => Acc(value),
             "jmp" => Jmp(value),
             "nop" => Nop(value),
-            x => panic!(format!("Unknown instruction {} {}", x, value)),
+            x => panic!("Unknown instruction {} {}", x, value),
         })
     }
 }

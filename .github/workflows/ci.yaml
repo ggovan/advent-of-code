@@ -4,6 +4,7 @@ on: [push]
 
 jobs:
   build:
+    name: Build and test
     runs-on: ubuntu-20.04
 
     steps:
@@ -15,16 +16,10 @@ jobs:
         run: cargo build --bins --tests --verbose
       - name: Test
         run: cargo test --verbose
-      - name: Bench
-        run: cargo bench "2020 2 "
-      - uses: actions/upload-artifact@v2
-        with:
-          name: benches
-          path: target/criterion/
 
   push_to_registry:
     needs: build
-    name: Push Docker image to GitHub Packages
+    name: Push docker image to gitHub packages
     runs-on: ubuntu-20.04
     steps:
       - name: Check out the repo
