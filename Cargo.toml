@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Gordon Govan <gordon@ggovan.uk>"]
 edition = "2018"
 
+# This helps parallelise builds, but really doesn't make a big difference on this project
 [dependencies]
 aoc-2019 = { path = "./aoc-2019" }
 aoc-2020 = { path = "./aoc-2020" }
