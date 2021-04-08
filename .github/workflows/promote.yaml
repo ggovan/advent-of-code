@@ -23,10 +23,12 @@ jobs:
               await github.pulls.create({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                title: 'Promoting changes to master' + (context.payload.commits.length > 0 ? ': ' + context.payload.commits[0].message : ""),
+                title: 'Promoting changes to prerelease/staging' + (context.payload.commits.length > 0 ? ': ' + context.payload.commits[0].message.split("\n")[0] : ""),
+
                 head: 'master',
                 base: 'prerelease',
-                body: context.payload.commits.map(commit => commit.message).join("\n\n")
+                body: "Includes changes:\n\n" + context.payload.commits.map(commit => "- " + commit.message.split("\n")[0]).join("\n")
+
 
               })
             }
