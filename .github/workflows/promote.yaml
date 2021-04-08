@@ -1,0 +1,32 @@
+name: 'Promote branch to master'
+on:
+  push:
+    branches:
+      - "test-branch"
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v3
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const {data: activePulls} = await github.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              head: 'master',
+              base: 'prerelease',
+            })
+            if (activePulls.length == 0) {
+              await github.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: 'Promoting changes to master' + (context.payload.commits.length > 0 ? ': ' + context.payload.commits[0].message : ""),
+                head: 'master',
+                base: 'prerelease',
+                body: context.payload.commits.map(commit => commit.message).join("\n\n")
+
+              })
+            }
