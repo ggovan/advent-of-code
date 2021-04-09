@@ -5,7 +5,7 @@ on:
       - "test-branch"
 
 jobs:
-  comment:
+  create-pr:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v3
@@ -16,19 +16,18 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               state: 'open',
-              head: 'master',
+              head: 'test-branch-merge',
               base: 'prerelease',
             })
+            // Add a comment
             if (activePulls.length == 0) {
-              await github.pulls.create({
+              const pr = await github.pulls.create({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 title: 'Promoting changes to prerelease/staging' + (context.payload.commits.length > 0 ? ': ' + context.payload.commits[0].message.split("\n")[0] : ""),
 
-                head: 'master',
+                head: 'test-branch-merge',
                 base: 'prerelease',
                 body: "Includes changes:\n\n" + context.payload.commits.map(commit => "- " + commit.message.split("\n")[0]).join("\n")
-
-
               })
             }
