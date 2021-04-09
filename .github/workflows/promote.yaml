@@ -2,7 +2,7 @@ name: 'Promote branch to master'
 on:
   push:
     branches:
-      - "test-branch"
+      - "test-branch-merge"
 
 jobs:
   comment:
@@ -16,7 +16,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               state: 'open',
-              head: 'master',
+              head: 'test-branch-merge',
               base: 'prerelease',
             })
             if (activePulls.length == 0) {
@@ -25,7 +25,7 @@ jobs:
                 repo: context.repo.repo,
                 title: 'Promoting changes to prerelease/staging' + (context.payload.commits.length > 0 ? ': ' + context.payload.commits[0].message.split("\n")[0] : ""),
 
-                head: 'master',
+                head: 'test-branch-merge',
                 base: 'prerelease',
                 body: "Includes changes:\n\n" + context.payload.commits.map(commit => "- " + commit.message.split("\n")[0]).join("\n")
 
