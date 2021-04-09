@@ -4,12 +4,13 @@ version = "0.1.0"
 authors = ["Gordon Govan <gordon@ggovan.uk>"]
 edition = "2018"
 
+# This helps parallelise builds, but really doesn't make a big difference on this project
 [dependencies]
-lazy_static = "1.4.0"
-regex = "1.4.2"
-text_io = "0.1.8"
-itertools = "0.9.0"
-num = "0.3.1"
+aoc-2019 = { path = "./aoc-2019" }
+aoc-2020 = { path = "./aoc-2020" }
+aoc-common = { path = "./aoc-common" }
+
+tokio = { version = "1", features = ["full"] }
 
 [dev-dependencies]
 criterion = "0.3.3"
@@ -17,3 +18,17 @@ criterion = "0.3.3"
 [[bench]]
 name = "bench_2020"
 harness = false
+
+[workspace]
+members = [
+    "aoc-common",
+    "aoc-2019",
+    "aoc-2020",
+]
+
+[profile.release]
+opt-level = 'z'     # Optimize for size.
+lto = true          # Enable Link Time Optimization
+codegen-units = 1   # Reduce number of codegen units to increase optimizations.
+panic = 'abort'     # Abort on panic
+
