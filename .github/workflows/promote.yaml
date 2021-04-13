@@ -1,0 +1,34 @@
+name: 'Promote branch to master'
+on:
+  push:
+    branches:
+      - "test-branch-merge"
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v3
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const {data: activePulls} = await github.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              head: 'test-branch-merge',
+              base: 'prerelease',
+            })
+            console.log(`Active pull requests: ${activePulls}`)
+            if (activePulls.length == 0) {
+              const pr = await github.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: 'Promoting changes to prerelease/staging' + (context.payload.commits.length > 0 ? ': ' + context.payload.commits[0].message.split("\n")[0] : ""),
+
+                head: 'test-branch-merge',
+                base: 'prerelease',
+                body: "Includes changes:\n\n" + context.payload.commits.map(commit => "- " + commit.message.split("\n")[0]).join("\n")
+              })
+              console.log("Created PR: " + pr)
+            }

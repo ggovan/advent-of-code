@@ -1,6 +1,6 @@
 use super::intcode;
-use aoc_common::files::Res;
 use aoc_common::aoc_day::AocDay;
+use aoc_common::files::Res;
 use aoc_common::geometry::{self, Direction};
 use aoc_common::search::{search, HeapElem};
 use std::collections::VecDeque;

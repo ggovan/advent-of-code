@@ -1,4 +1,6 @@
-use advent_of_code::{aoc_2019, aoc_2020};
+use aoc_2019;
+use aoc_2020;
+use aoc_common::aoc_day::AocDay;
 use criterion::{criterion_group, criterion_main, Criterion};
 
 pub fn criterion_benchmark_2020(c: &mut Criterion) {
@@ -28,7 +30,7 @@ pub fn criterion_benchmark_2020(c: &mut Criterion) {
     bench::<aoc_2020::Day24>(c, 2020);
 }
 
-fn bench<Day: aoc_2020::Aoc2020>(c: &mut Criterion, year: usize) {
+fn bench<Day: AocDay>(c: &mut Criterion, year: usize) {
     let input = Day::load().unwrap();
 
     c.bench_function(&format!("{} {} 1", year, Day::day()), |b| {
