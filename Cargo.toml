@@ -8,6 +8,7 @@ edition = "2018"
 aoc-2019 = { path = "./aoc-2019" }
 aoc-2020 = { path = "./aoc-2020" }
 aoc-common = { path = "./aoc-common" }
+football-puzzle = { path = "./football-puzzle" }
 
 tokio = { version = "1", features = ["full"] }
 
