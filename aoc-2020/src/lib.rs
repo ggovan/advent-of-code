@@ -1,4 +1,3 @@
-#![feature(str_split_once)]
 extern crate lazy_static;
 
 use aoc_common::aoc_day::AocDay;
