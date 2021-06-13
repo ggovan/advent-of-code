@@ -4,38 +4,34 @@ use aoc_common::{time, time_block};
 use std::collections::{HashMap, VecDeque};
 
 pub fn run_all() -> Res<()> {
-    // let input = vec![2,3,5, 7, 11, 13, 17, 19, 23, 29, 31];
     // these _must_ be coprime
-    let input = vec![7, 17, 13, 10]; //, 19, 23, 29, 31, 33, 37];
-    let input = vec![17, 13, 10, 19, 23, 29, 31, 33, 37]; // 7,
-    let input = vec![37, 33, 31, 29, 23, 19, 17, 13, 10, 7, 101];
-    // let input = vec![37, 33, 31, 19, 23, 29, 17, 13, 10, 7];
+    let input: Vec<i64> = vec![37, 101, 91, 103, 23, 19, 17, 29, 33, 10, 31];
 
-    let input = [101, 17, 31, 7, 13, 37, 33, 23, 10, 19, 29];
-
+    // Some test configs
     // let input = [3, 5];
     let speed = 10;
 
-    let _total_time = time_block("Part 6: solve within");
+    let _total_time = time_block("Part 6 - solve all of the above within");
+
+    println!("The German team are {:?}", &input);
+    println!("Kevin Nisbet runs at {}", speed);
 
     let (s, t): (_, _) = time(|| part_1(&input));
     println!("Part 1 - {} in {:?}", s, t);
 
-    let (s, t): (_, _) = time(|| part_2(&input, speed));
-    println!("Part 2 - {} in {:?}", s, t);
+    let (s2, t): (_, _) = time(|| part_2(&input, speed));
+    println!("Part 2 - {} in {:?}", s2, t);
 
     let mut with_klinski = input.clone();
-    with_klinski[0] = 7919;
-    let (s, t): (_, _) = time(|| part_2(&with_klinski, speed));
-    println!("Part 3 - {} in {:?}", s, t);
+    with_klinski[0] = 1087;
+    let (s3, t): (_, _) = time(|| part_2(&with_klinski, speed));
+    println!("Part 3 - {} in {:?}", s3, t);
 
-    let (s, t): (_, _) = time(|| part_4(&input, speed));
-    println!("Part 4 - {} in {:?}", s, t);
+    let (s4, t): (_, _) = time(|| part_4(&input, speed));
+    println!("Part 4 - {} in {:?}", s4, t);
 
-    let (s, t): (_, _) = time(|| part_5(&input));
-    println!("Part 5 - {:?} in {:?}", s, t);
-
-    // println!("Total time: {:?}", t);
+    let (s5, t): (_, _) = time(|| part_5(&input, s2));
+    println!("Part 5 - {:?} in {:?}", s5, t);
 
     Ok(())
 }
@@ -126,7 +122,6 @@ fn find_pattern(
 
     // The new period will be a multiple of the old period.
     // Keep looping until you find it.
-    // dbg!("get period");
     let mut new_period = period;
     loop {
         if (new_offset + new_period + (player_index as i64) * running_interval) % player_speed == 0
@@ -144,7 +139,6 @@ fn part_4(players: &[i64], running_interval: i64) -> i64 {
     let mut permut_store: VecDeque<usize> = VecDeque::new();
     // A stack of (offset, period) - could be an array
     let mut score_stack: VecDeque<(i64, i64)> = VecDeque::new();
-
     // the team order and score
     let mut min: Option<(VecDeque<usize>, i64)> = None;
 
@@ -213,9 +207,9 @@ fn dive(
     }
 }
 
-fn part_5(players: &[i64]) -> (i64, i64) {
+fn part_5(players: &[i64], threshold: i64) -> usize {
     (0..1000)
         .map(|speed| (speed, part_2(players, speed)))
-        .min_by_key(|(_, t)| *t)
-        .unwrap()
+        .filter(|(_, t)| *t < threshold)
+        .count()
 }
