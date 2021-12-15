@@ -8,6 +8,7 @@ version = "0.1.0"
 dependencies = [
  "aoc-2019",
  "aoc-2020",
+ "aoc-2021",
  "aoc-common",
  "criterion",
  "football-puzzle",
@@ -34,6 +35,17 @@ dependencies = [
 
 [[package]]
 name = "aoc-2020"
+version = "0.1.0"
+dependencies = [
+ "aoc-common",
+ "itertools",
+ "lazy_static",
+ "regex",
+ "tokio",
+]
+
+[[package]]
+name = "aoc-2021"
 version = "0.1.0"
 dependencies = [
  "aoc-common",
