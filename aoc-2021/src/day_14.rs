@@ -17,14 +17,14 @@ impl AocDay for Day14 {
         let input_str = read_to_string("data/2021/day_14.in")?;
 
         Ok((
-            input_str.lines().nth(0).unwrap().chars().collect(),
+            input_str.lines().next().unwrap().chars().collect(),
             input_str
                 .lines()
                 .skip(2)
                 .map(|l| {
                     let (left, right) = l.split_once(" -> ").unwrap();
                     (
-                        (left.chars().nth(0).unwrap(), left.chars().nth(1).unwrap()),
+                        (left.chars().next().unwrap(), left.chars().nth(1).unwrap()),
                         right.chars().next().unwrap(),
                     )
                 })
@@ -49,16 +49,20 @@ fn do_it((input, rules): &<Day14 as AocDay>::Input, iterations: usize) -> i64 {
         *pairs.entry(*c).or_insert(0) += 1;
     }
 
+    let mut next_pairs: HashMap<(char, char), i64> = HashMap::new();
     for _ in 0..iterations {
-        let mut next_pairs: HashMap<(char, char), i64> = HashMap::new();
-        for (p, count) in pairs.iter() {
-            let nc = rules.get(p).unwrap();
-            let np1 = (p.0, *nc);
-            let np2 = (*nc, p.1);
+        next_pairs.clear();
+        for (p, count) in pairs.drain() {
+            let nc = rules[&p];
+            let np1 = (p.0, nc);
+            let np2 = (nc, p.1);
             *next_pairs.entry(np1).or_insert(0) += count;
             *next_pairs.entry(np2).or_insert(0) += count;
         }
+        // swap to avoid alloc
+        let t = pairs;
         pairs = next_pairs;
+        next_pairs = t;
     }
 
     let mut freq_map: HashMap<char, i64> = HashMap::new();

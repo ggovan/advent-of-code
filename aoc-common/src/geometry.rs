@@ -15,7 +15,7 @@ pub enum Direction {
 }
 
 impl Direction {
-    pub fn array() -> &'static [Self; 4] {
+    pub const fn array() -> &'static [Self; 4] {
         use Direction::*;
         const ARRAY: [Direction; 4] = [North, East, South, West];
         &ARRAY

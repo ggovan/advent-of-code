@@ -99,6 +99,7 @@ impl AocDay for Day13 {
     fn part_2((page, folds): &Self::Input) -> Self::Result2 {
         let mut currentPage = page.clone();
 
+        // I could turn this into a hashset at each iter, but lazy
         for (dir, pos) in folds.iter() {
             let nextPage = currentPage
                 .iter()
@@ -119,7 +120,7 @@ impl AocDay for Day13 {
                 if set.contains(&(x, y)) {
                     print!("#");
                 } else {
-                    print!(".");
+                    print!(" ");
                 }
             }
             println!("");
@@ -130,7 +131,7 @@ impl AocDay for Day13 {
 }
 
 fn parse(line: &str) -> Option<Either<(i32, i32), (Dir, i32)>> {
-    if line.chars().nth(0)? != 'f' {
+    if line.chars().next()? != 'f' {
         let (left, right) = line.split_once(",")?;
         Some(Either::Left((left.parse().ok()?, right.parse().ok()?)))
     } else {
@@ -141,42 +142,5 @@ fn parse(line: &str) -> Option<Either<(i32, i32), (Dir, i32)>> {
             .split_once("=")
             .unwrap();
         Some(Either::Right((dir.parse().ok()?, pos.parse().ok()?)))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use std::collections::HashMap;
-
-    use super::*;
-
-    #[test]
-    fn test_parse_input() {
-        let res = parse(
-            r#"start-A
-6,10
-0,14
-9,10
-0,3
-10,4
-4,11
-6,0
-6,12
-4,1
-0,13
-10,12
-3,4
-3,0
-8,4
-1,10
-2,14
-8,10
-9,0
-
-fold along y=7
-fold along x=5
-"#,
-        );
-        assert_eq!(res, ("start".to_owned(), "b".to_owned()));
     }
 }

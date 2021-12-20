@@ -54,6 +54,9 @@ fn find_all_routes(
                     let unseen = big || unseen(end, from);
 
                     if big || unseen || !visited_small {
+                        // I could replace all strings with small structs e.g. `(label, big)`.
+                        // This would prevent these clones.
+                        // Or I could try to RC, not done that in 12 months!
                         from.push(end.clone());
                         let sum = find_all_routes(
                             paths,

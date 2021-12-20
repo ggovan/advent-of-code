@@ -2,7 +2,6 @@ use aoc_common::aoc_day::AocDay;
 use aoc_common::files::Res;
 use aoc_common::geometry::Direction;
 use aoc_common::search::{search, HeapElem};
-use std::collections::HashMap;
 use std::fs::read_to_string;
 
 pub struct Day15;
