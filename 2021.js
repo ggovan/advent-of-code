@@ -355,3 +355,68 @@ while(!input.every(line => line.every(v => v == 0))){
 
 console.log(i)
 
+
+
+// Day 17 
+
+// example
+// target area: x=20..30, y=-10..-5
+min_y = -10
+max_y = 9
+min_x = 6
+max_x = 30
+
+xb = 20
+yb = -5
+
+// input
+// target area: x=119..176, y=-141..-84
+min_y = -141
+max_y = 9870 // this was the solution for part 1. (140²+140)/2
+min_x = 15 // (15²+15)/2 = 120, i.e. smallest >= 119
+max_x = 176
+
+xb = 119
+yb = -84
+
+// This is incredibly slow for the input, small xs take a long time!
+// But I'm doing it in JS so whatever.
+function solves(vxi,vyi) {
+  let vx = vxi
+  let vy = vyi
+  let x = 0
+  let y = 0
+  
+  if (vyi > 1) {
+    // skip 2 * vyi iterations so we're back at 0
+    // this would be most of the runtime for large y values
+    vy = -vyi
+    vx = vxi - (2*vyi)
+    let ovx = vx < 0 ? 0: vx + 1;
+    vx = vx < 0 ? 0 : vx;
+    y = 0
+    
+    x = (vxi*vxi+vxi)/2 - (ovx*ovx+ovx)/2
+  }
+  
+  while(y >= min_y && x <= max_x) {
+    if (x >= xb && x <=max_x && y>=min_y && y <=yb) {
+      return true
+    }
+    x += vx--;
+    y += vy--;
+    vx = vx < 0 ? 0 : vx;
+    if (vx == 0 && x < xb) return false
+  }
+
+  return false
+}
+
+solved = 0
+
+for (let x = min_x; x <= max_x; x++) {
+  for (let y = min_y; y <= max_y; y++){
+    solved += solves(x,y) ? 1 : 0
+  }
+}
+console.log("Day 17 Part 2:",solved)
