@@ -103,6 +103,6 @@ mod tests {
 // A-end
 // b-end"#,
         );
-        assert_eq!(res, ("start".to_owned(), "b".to_owned()));
+        assert_eq!(res[0], ("start".to_owned(), "b".to_owned()));
     }
 }
