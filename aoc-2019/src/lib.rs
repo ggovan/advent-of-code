@@ -24,8 +24,15 @@ pub fn main(day: Option<usize>) -> Res<()> {
     println!("Advent of code!!!");
 
     let (_, t): (Res<()>, _) = time(|| {
-        day_1::Day01::run_me_maybe(day)?;
-        day_02::Day02::run_me_maybe(day)?;
+        for d in [
+            day_1::Day01::run_me_maybe(day)?,
+            day_02::Day02::run_me_maybe(day)?,
+        ] {
+            let output = d;
+            for l in output {
+                println!("{}", l);
+            }
+        }
 
         if day.is_none() {
             day_3::day_3()?;
@@ -41,14 +48,21 @@ pub fn main(day: Option<usize>) -> Res<()> {
             intcode::day_13()?;
         }
 
-        day_14::Day14::run_me_maybe(day)?;
-        day_15::Day15::run_me_maybe(day)?;
-        day_16::Day16::run_me_maybe(day)?;
-        day_17::Day17::run_me_maybe(day)?;
-        day_18::Day18::run_me_maybe(day)?;
-        day_19::Day19::run_me_maybe(day)?;
-        day_20::Day20::run_me_maybe(day)?;
-        day_21::Day21::run_me_maybe(day)?;
+        for d in [
+            day_14::Day14::run_me_maybe(day)?,
+            day_15::Day15::run_me_maybe(day)?,
+            day_16::Day16::run_me_maybe(day)?,
+            day_17::Day17::run_me_maybe(day)?,
+            day_18::Day18::run_me_maybe(day)?,
+            day_19::Day19::run_me_maybe(day)?,
+            day_20::Day20::run_me_maybe(day)?,
+            day_21::Day21::run_me_maybe(day)?,
+        ] {
+            let output = d;
+            for l in output {
+                println!("{}", l);
+            }
+        }
 
         Ok(())
     });

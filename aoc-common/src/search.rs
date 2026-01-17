@@ -24,7 +24,7 @@ impl<E: Eq> PartialOrd for HeapElem<E> {
     }
 }
 
-pub fn search<E: Hash + Eq + Clone, Iter: Iterator<Item = HeapElem<E>>>(
+pub fn search<E: Hash + Eq + Clone + Debug, Iter: Iterator<Item = HeapElem<E>>>(
     start: E,
     is_goal: impl Fn(&E) -> bool,
     mut successors: impl FnMut(E, u64) -> Iter,
@@ -38,7 +38,12 @@ pub fn search<E: Hash + Eq + Clone, Iter: Iterator<Item = HeapElem<E>>>(
         heuristic: 0,
     });
 
-    while let Some(HeapElem { elem, distance, .. }) = queue.pop() {
+    while let Some(HeapElem {
+        elem,
+        distance,
+        heuristic: _,
+    }) = queue.pop()
+    {
         if visited.contains(&elem) {
             continue;
         }

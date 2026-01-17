@@ -18,7 +18,7 @@ impl AocDay for Day16 {
             .next()
             .unwrap()
             .chars()
-            .map(|c| (c as i32 - '0' as i32))
+            .map(|c| c as i32 - '0' as i32)
             .collect::<Vec<_>>())
     }
 

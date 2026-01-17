@@ -1,5 +1,5 @@
 #[derive(PartialEq, Eq, Copy, Clone, std::fmt::Debug, Hash)]
-pub struct Bitset(u64);
+pub struct Bitset(pub u64);
 
 #[allow(unused)]
 impl Bitset {
@@ -43,6 +43,11 @@ impl Bitset {
         }
         new
     }
+
+    pub fn disjoint(&self, Bitset(other): Bitset) -> Self {
+        Bitset(self.0 ^ other)
+    }
+
 }
 
 #[cfg(test)]
@@ -55,5 +60,16 @@ mod tests {
         assert_eq!(0b1, Bitset::from(0b1).flip_start(1).0);
         assert_eq!(0b01, Bitset::from(0b10).flip_start(2).0);
         assert_eq!(0b01, Bitset::from(0b10).flip_start(2).0);
+    }
+
+        #[test]
+    fn disjoint() {
+        fn helper (a: u64, b: u64) -> u64 {
+            Bitset::from(a).disjoint(Bitset::from(b)).0
+        }
+        assert_eq!(0, helper(0,0));
+        assert_eq!(0, helper(1,1));
+        assert_eq!(3, helper(1,2));
+        assert_eq!(6, helper(5,3));
     }
 }

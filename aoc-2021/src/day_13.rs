@@ -78,10 +78,10 @@ impl AocDay for Day13 {
     }
 
     fn part_1((page, folds): &Self::Input) -> Self::Result1 {
-        let mut currentPage = page.clone();
+        let mut current_page = page.clone();
 
         for (dir, pos) in folds.iter().take(1) {
-            let nextPage = currentPage
+            let next_page = current_page
                 .iter()
                 .map(|(x, y)| match dir {
                     Dir::X if x >= pos => (pos - (x - pos), *y),
@@ -89,19 +89,19 @@ impl AocDay for Day13 {
                     _ => (*x, *y),
                 })
                 .collect();
-            currentPage = nextPage;
+            current_page = next_page;
         }
 
-        let set: HashSet<_, RandomState> = HashSet::from_iter(currentPage.into_iter());
+        let set: HashSet<_, RandomState> = HashSet::from_iter(current_page.into_iter());
         set.len()
     }
 
     fn part_2((page, folds): &Self::Input) -> Self::Result2 {
-        let mut currentPage = page.clone();
+        let mut current_page = page.clone();
 
         // I could turn this into a hashset at each iter, but lazy
         for (dir, pos) in folds.iter() {
-            let nextPage = currentPage
+            let next_page = current_page
                 .iter()
                 .map(|(x, y)| match dir {
                     Dir::X if x >= pos => (pos - (x - pos), *y),
@@ -109,10 +109,10 @@ impl AocDay for Day13 {
                     _ => (*x, *y),
                 })
                 .collect();
-            currentPage = nextPage;
+            current_page = next_page;
         }
 
-        let set: HashSet<_, RandomState> = HashSet::from_iter(currentPage.into_iter());
+        let set: HashSet<_, RandomState> = HashSet::from_iter(current_page.into_iter());
 
         println!("Day 13:");
         for y in 0..=(*set.iter().map(|(_, y)| y).max().unwrap()) {

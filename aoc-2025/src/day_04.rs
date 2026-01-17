@@ -10,7 +10,7 @@ impl AocDay for Day04 {
     type Result2 = usize;
 
     fn day() -> usize {
-        11
+        4
     }
     fn load() -> Res<Self::Input> {
         let s = read_to_string("data/2025/day_04.in")?;
@@ -24,8 +24,8 @@ impl AocDay for Day04 {
     fn part_1((input, width, height): &Self::Input) -> Self::Result1 {
         let mut new = input.clone();
 
-        run_step_vec(&input, &mut new, *width, *height, 4, false);
-        return new.iter().filter(|&c| *c == 'x').count();
+        run_step_vec(input, &mut new, *width, *height, 4, false);
+        new.iter().filter(|&c| *c == 'x').count()
     }
 
     /// Model the input as cellular automata and run it until it is stable and count the number of seats.
@@ -73,8 +73,6 @@ fn run_step_vec(
 
 /// an empty string means off-grid
 fn get(ca: &[char], column: i32, row: i32, width: i32, height: i32) -> char {
-    // faster without this!
-    // if (0..width as i32).contains(&column) && (0..height as i32).contains(&row) {
     if column >= 0 && row >= 0 && column < width && row < height {
         ca[(column + width * row) as usize]
     } else {

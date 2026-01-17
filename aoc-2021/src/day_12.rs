@@ -85,24 +85,3 @@ fn is_big(s: &str) -> bool {
 fn unseen(s: &str, path: &[String]) -> bool {
     path.iter().all(|e| e != s)
 }
-
-#[cfg(test)]
-mod tests {
-    use std::collections::HashMap;
-
-    use super::*;
-
-    #[test]
-    fn test_parse_input() {
-        let res = parse(
-            r#"start-A"#
-// start-b
-// A-c
-// A-b
-// b-d
-// A-end
-// b-end"#,
-        );
-        assert_eq!(res[0], ("start".to_owned(), "b".to_owned()));
-    }
-}

@@ -1,9 +1,9 @@
 {
-	// Place your advent-of-code workspace snippets here. Each snippet is defined under a snippet name and has a scope, prefix, body and 
-	// description. Add comma separated ids of the languages where the snippet is applicable in the scope field. If scope 
-	// is left empty or omitted, the snippet gets applied to all languages. The prefix is what is 
-	// used to trigger the snippet and the body will be expanded and inserted. Possible variables are: 
-	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. 
+	// Place your advent-of-code workspace snippets here. Each snippet is defined under a snippet name and has a scope, prefix, body and
+	// description. Add comma separated ids of the languages where the snippet is applicable in the scope field. If scope
+	// is left empty or omitted, the snippet gets applied to all languages. The prefix is what is
+	// used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
+	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders.
 	// Placeholders with the same ids are connected.
 	// Example:
 	// "Print to console": {
@@ -19,13 +19,13 @@
 		"scope": "rust",
 		"prefix": "newday",
 		"body": [
-			"use crate::aoc_2020::Aoc2020;",
-			"use crate::files::Res;",
-			"use std::fs::read_to_string;"
+			"use aoc_common::files::Res;",
+			"use aoc_common::aoc_day::AocDay;",
+			"use std::fs::read_to_string;",
 			"",
 			"pub struct Day$1;",
 			"",
-			"impl Aoc2020 for Day$1 {",
+			"impl AocDay for Day$1 {",
 			"    type Input = $2;",
 			"    type Result1 = $3;",
 			"    type Result2 = $4;",
@@ -33,8 +33,7 @@
 			"    fn day() -> usize {$1}",
 			"    ",
 			"    fn load() -> Res<Self::Input> {",
-			"         let input = read_to_string(\"data/2020/day_$1.in\")?;",
-			"         unimplemented!(\"Can't load this yet\")",
+			"         Ok(parse(read_to_string(\"data/2025/day_$1.in\")?))",
 			"    }",
 			"",
 			"    fn part_1(_input: &Self::Input) -> Self::Result1 {",
@@ -46,7 +45,7 @@
 			"    }",
 			"}"
 		],
-		"description": "Create imports and an unimplemented Aoc2020 impl for the day."
+		"description": "Create imports and an unimplemented AocDay impl for the day."
 	},
 	"create an example test": {
 		"scope": "rust",
