@@ -176,7 +176,7 @@ input=`2199943210
 8767896789
 9899965678`.split("\n").map(line => line.split("").map(n => Number.parseInt(n)));
 
-basinPoints = input.flatMap((line,y) => 
+basinPoints = input.flatMap((line,y) =>
   line.flatMap((v,x) => (//console.log(x,y),
     (y == 0 || v < input[y-1][x])
   		&& (x == 0 || v < input[y][x-1])
@@ -194,13 +194,13 @@ basinPoints.map(([v,x,y]) => {
 //   console.log(`${x},${y}`)
   visited = {};
   queue = [[x,y]];
-  
+
   while(queue.length) {
     let [x,y] = queue.shift();
     if (visited[`${x},${y}`]) continue;
     visited[`${x},${y}`] = true;
 //     console.log(`  ${x},${y}`)
-    
+
     if  (y != 0 && 9 != input[y-1][x])
       queue.push([x,y-1])
   	if (x != 0 && 9 != input[y][x-1])
@@ -210,7 +210,7 @@ basinPoints.map(([v,x,y]) => {
   	if (x != input[0].length - 1 && 9 != input[y][x+1])
       queue.push([x+1,y])
   }
-  
+
   return Object.keys(visited).length
 }).sort((a,b) => a<=b).splice(0,3).reduce((a,b)=>a*b,1)
 
@@ -229,7 +229,7 @@ input=`[({(<(())[]>[[{[]{<()<>>
 
 p1 = input.flatMap(line => {
   let stack = [];
-  
+
   for (let c of line) {
     if (c == '<')
       stack.push('>')
@@ -248,16 +248,16 @@ p1 = input.flatMap(line => {
       })[c]]
     }
   }
-  
+
   return []
-  
+
 }).reduce((a,b) => a+b,0)
 
 console.log("Part 1:", p1)
 
 p2s = input.flatMap(line => {
   let stack = [];
-  
+
   for (let c of line) {
     if (c == '<')
       stack.push('>')
@@ -271,16 +271,16 @@ p2s = input.flatMap(line => {
       return []
     }
   }
-  
+
   return stack.reverse().reduce((a,c) => {
 		return 5*a + ({
         ')': 1,
         ']': 2,
         '}': 3,
         '>': 4,
-    })[c]    
+    })[c]
   },0)
-  
+
 })
 p2s.sort((a,b)=>a<=b)
 p2s[(p2s.length-1)/2]
@@ -300,10 +300,10 @@ input=`5483143223
 5283751526`.split('\n').map(line => line.split('').map(c => Number.parseInt(c)));
 
 function phase1(input) {
-  
+
   return input.map(line => line.map(c => c+1))
 }
-  
+
 function neighbours(arr, x, y) {
   return [
     [-1,-1],[0,-1],[1,-1]
@@ -327,13 +327,13 @@ function phase2(input) {
     }))
   }
   return input;
-  
+
 }
 
 flashes = 0
 
 function phase3(input) {
-  return input.map(line => line.map(v => v == 11 ? (flashes++,0) : v)); 
+  return input.map(line => line.map(v => v == 11 ? (flashes++,0) : v));
 }
 
 
@@ -357,7 +357,7 @@ console.log(i)
 
 
 
-// Day 17 
+// Day 17
 
 // example
 // target area: x=20..30, y=-10..-5
@@ -386,7 +386,7 @@ function solves(vxi,vyi) {
   let vy = vyi
   let x = 0
   let y = 0
-  
+
   if (vyi > 1) {
     // skip 2 * vyi iterations so we're back at 0
     // this would be most of the runtime for large y values
@@ -395,10 +395,10 @@ function solves(vxi,vyi) {
     let ovx = vx < 0 ? 0: vx + 1;
     vx = vx < 0 ? 0 : vx;
     y = 0
-    
+
     x = (vxi*vxi+vxi)/2 - (ovx*ovx+ovx)/2
   }
-  
+
   while(y >= min_y && x <= max_x) {
     if (x >= xb && x <=max_x && y>=min_y && y <=yb) {
       return true

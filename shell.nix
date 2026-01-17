@@ -1,4 +1,4 @@
-{ 
+{
   unstable ? import <nixpkgs> {},
 }:
 

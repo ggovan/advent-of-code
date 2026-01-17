@@ -1,0 +1,15 @@
+# To install the pre-commit hooks with https://github.com/j178/prek
+# prek install -f
+
+default_stages: [pre-commit]
+repos:
+  - repo: builtin
+    hooks:
+      - id: check-added-large-files
+      - id: check-symlinks
+      - id: check-merge-conflict
+      - id: check-json
+      - id: check-toml
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
